@@ -308,6 +308,23 @@
        "TITLE": "Configuration"
      }
    },
+   "REGISTRATION": {
+      "MODAL": {
+         "CAPTION": "Registration",
+         "SKIP": "Not now",
+         "CONTINUE": "Continue",
+         "BACK": "Back",
+         "INFORMATION": {
+           "HEADER": "Thank you for using Opencast!"
+         },
+         "SKIP_STATE": {
+           "HEADER": "Maybe next time!"
+         },
+         "SAVE_STATE": {
+           "HEADER": "Thank you for your registration!"
+         }
+      }
+   },
    "EVENTS": {
      "RETRACT": {
         "CAPTION": "Retract Event",

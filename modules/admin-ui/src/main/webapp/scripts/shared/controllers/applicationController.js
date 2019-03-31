@@ -35,7 +35,6 @@ angular.module('adminNg.controllers')
         DOCUMENTATION_URL_PROPERTY = 'org.opencastproject.admin.help.documentation.url',
         RESTDOCS_URL_PROPERTY = 'org.opencastproject.admin.help.restdocs.url',
         MEDIA_MODULE_URL_PROPERTY = 'org.opencastproject.admin.mediamodule.url';
-
     $scope.currentUser  = null;
     $scope.feedbackUrl = undefined;
     $scope.documentationUrl = undefined;
@@ -104,6 +103,9 @@ angular.module('adminNg.controllers')
         }
       });
     }
+    
+    // TODO: Don't open always on startup
+    ResourceModal.show('registration-modal');
 
     HotkeysService.activateUniversalHotkey('general.event_view', function (event) {
       event.preventDefault();
