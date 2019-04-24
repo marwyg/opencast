@@ -21,18 +21,18 @@
 
 
 #registration-modal {
-    
+
     .modal-body {
       padding: 3% 3% 3% 3%;
     }
-    
+
     .modal-content {
         background-color: $primary-color-white;
         //background-color: $white;
         .row {
             margin: 6px 0;
         }
-    
+
     fieldset {
       margin: 0px 0px 5px 0px;
       border: $thin-border-stroke $main-border-color;
@@ -44,7 +44,7 @@
       }
       padding: 0px 20px;
     }
-    
+
     hr {
       border: none;
       height: 1px;
@@ -58,17 +58,17 @@
       font-size: 15px;
       line-height: 1.25;
     }
-    
+
     b {
       color: $dark-prim-color;
       font-weight: 700;
     }
-    
+
     .form-group {
       font-family: "Open Sans", Helvetica, sans-serif;
       position: relative;
       margin-bottom: 0.3rem;
-      
+
       select {
         height: $input-height;
         padding-left: 17px;
@@ -77,7 +77,7 @@
         color: transparent;
         text-shadow: 0 0 0 #000;
       }
-      
+
       display: inline-block;
       width: 100%;
     }
@@ -92,11 +92,11 @@
         display: inline-block;
       }
     }
-    
+
     .form-group-checkbox:last-child {
       margin-bottom: 8px;
     }
-    
+
     .form-group-pair {
       .form-group:first-child {
         float:left;
@@ -113,7 +113,7 @@
       width: 100%;
       padding-top: 8px;
     }
-    
+
     .form-control-placeholder {
       position: absolute;
       top: 0;
@@ -130,21 +130,38 @@
       opacity: 1;
       color: #4b4b4b
     }
-    
+
     .form-control:focus + .form-control-placeholder {
       color: #378dd4;
     }
-    
+
     .form-control.ng-invalid.ng-dirty + .form-control-placeholder{
       color: red;
     }
-    
+
     .form-control:required + label:after {
         color: #e32;
         content: ' *';
         display:inline;
     }
-
+    .scrollbox {
+      h1 {
+        color: $dark-prim-color;
+        font-size: 18px;
+        font-weight: 600;
+        margin-bottom: 20px;
+        margin-top: 10px;
+      }
+      background-color: $white;
+      border: $thin-border-stroke $main-border-color;
+      border-radius: $main-border-radius;
+      max-height: 350px;
+      padding: 10px;
+      overflow: auto;
+    }
+    .spinner-container {
+      text-align: center;
+    }
     .registration-header {
         padding: 10px 0;
         padding-top: 0;
@@ -202,12 +219,11 @@
               background-color: #37c180;
             }
         }
-        
+
         .pull-right {
             float: right;
             margin-right: 20px;
         }
-        
         .skip-registration {
             float: none;
             height: 100%;
@@ -220,8 +236,12 @@
           bottom: 8px;
           right: 0;
           left: 0;
-          cursor: pointer;
         }
     }
-
+    .link {
+      cursor: pointer;
+      border-bottom-width: 1px;
+      border-bottom-color: currentcolor;
+      border-bottom-style: dashed;
+    }
 }
