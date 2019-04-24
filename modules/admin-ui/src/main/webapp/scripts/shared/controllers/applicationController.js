@@ -103,9 +103,9 @@ angular.module('adminNg.controllers')
         }
       });
     }
-    
+
     // TODO: Don't open always on startup
-    ResourceModal.show('registration-modal');
+    // ResourceModal.show('registration-modal');
 
     HotkeysService.activateUniversalHotkey('general.event_view', function (event) {
       event.preventDefault();

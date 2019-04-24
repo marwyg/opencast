@@ -22,13 +22,15 @@
 
 // Controller for creating a new event. This is a wizard, so it implements a state machine design pattern.
 angular.module('adminNg.controllers')
-.controller('RegistrationCtrl', ['$scope', '$timeout', 'Table', 'AdopterRegistrationStates', 'AdopterRegistrationResource', 'CountryResource',
-  'NewEventStates', 'NewEventResource', 'EVENT_TAB_CHANGE', 'Notifications', 'Modal',
+.controller('RegistrationCtrl', ['$scope', '$timeout', 'Table', 'AdopterRegistrationStates',
+  'AdopterRegistrationResource', 'CountryResource', 'NewEventStates', 'NewEventResource', 'EVENT_TAB_CHANGE',
+  'Notifications', 'Modal',
   function ($scope, $timeout, Table, AdopterRegistrationStates, AdopterRegistrationResource, CountryResource,
-      NewEventStates, NewEventResource, EVENT_TAB_CHANGE, Notifications, Modal) {
+    NewEventStates, NewEventResource, EVENT_TAB_CHANGE, Notifications, Modal) {
     $scope.state = AdopterRegistrationStates.getInitialState($scope.$parent.resourceId);
     $scope.states = AdopterRegistrationStates.get($scope.$parent.resourceId);
-    // TODO: CountryResource is in fact a service, but should be a resource. Look at countryResource.js for more information
+    // TODO: CountryResource is in fact a service, but should be a resource. Look at countryResource.js
+    //       for more information
     $scope.countries = CountryResource.getCountries();
 
     $scope.adopter = new AdopterRegistrationResource();
@@ -42,18 +44,18 @@ angular.module('adminNg.controllers')
           && (inputAction == 1 || inputAction == 3)) {
         return;
       }
-      $scope.state = $scope.states[$scope.state]["nextState"][inputAction];
+      $scope.state = $scope.states[$scope.state]['nextState'][inputAction];
 
-      if($scope.state == "close"){
+      if($scope.state == 'close'){
         $scope.close();
-      } else if($scope.state == "save") {
+      } else if($scope.state == 'save') {
         $scope.save();
-      } else if($scope.state == "update") {
+      } else if($scope.state == 'update') {
         $scope.updateProfile();
-      } else if($scope.state == "delete") {
+      } else if($scope.state == 'delete') {
         $scope.deleteProfile();
       }
-    }
+    };
 
     $scope.save = function () {
       // TODO: Perform real POST-Request to save adopter
@@ -64,7 +66,7 @@ angular.module('adminNg.controllers')
         }, 2000);
       }
       //AdopterRegistrationResource.save($scope.adopter, function($response) {});
-    }
+    };
 
     $scope.updateProfile = function () {
       // TODO: Perform real PUT-Request to save adopter
@@ -81,13 +83,12 @@ angular.module('adminNg.controllers')
         }, 2000);
       }
       //AdopterRegistrationResource.update($scope.adopter, function($response) {});
-    }
+    };
 
     $scope.deleteProfile = function () {
       // TODO: Perform real DELETE-Request to save adopter
       // TODO: Endpoint needs to be implemented too
       $timeout(function() {
-        console.log("delete profile")
         var success = true;
         if(success) {
           Notifications.add('success', 'ADOPTER_PROFILE_DELETED');
@@ -97,7 +98,7 @@ angular.module('adminNg.controllers')
         $scope.nextState(0);
       }, 2000);
       //AdopterRegistrationResource.delete($scope.adopter, function($response) {});
-    }
+    };
 
     $scope.close = function () {
       Modal.$scope.close();

@@ -26,145 +26,145 @@ angular.module('adminNg.services')
     return {
       get: function (mode) {
         var states = {
-            "information": {
-              "nextState": {
-                0: "skip",
-                1: "form"
-              },
-              "buttons": {
-                "submit": true,
-                "back": false,
-                "skip": true,
-                "close": false,
-                "submitButtonText": "ADOPTER_REGISTRATION.MODAL.CONTINUE"
-              }
+          'information': {
+            'nextState': {
+              0: 'skip',
+              1: 'form'
             },
-            "form": {
-              "nextState": {
-                0: "information",
-                1: "save",
-                2: "legal_info",
-                3: "update",
-                4: "delete_submit"
-              },
-              "buttons": {
-                "submit": true,
-                "back": true,
-                "skip": false,
-                "close": false,
-                "submitButtonText": "SUBMIT"
-              }
-            },
-            "save": {
-              "nextState": {
-                0: "thank_you",
-                1: "error"
-              },
-              "buttons": {
-                "submit": false,
-                "back": false,
-                "skip": false,
-                "close": false,
-                "submitButtonText": null
-              }
-            },
-            "update": {
-              "nextState": {
-                0: "close",
-                1: "error"
-              },
-              "buttons": {
-                "submit": false,
-                "back": false,
-                "skip": false,
-                "close": false,
-                "submitButtonText": null
-              }
-            },
-            "delete_submit": {
-              "nextState": {
-                0: "form",
-                1: "delete"
-              },
-              "buttons": {
-                "submit": true,
-                "back": true,
-                "skip": false,
-                "close": false,
-                "submitButtonText": "CONFIRM"
-              }
-            },
-            "delete": {
-              "nextState": {
-                0: "close",
-                1: "error"
-              },
-              "buttons": {
-                "submit": false,
-                "back": false,
-                "skip": false,
-                "close": false,
-                "submitButtonText": null
-              }
-            },
-            "thank_you": {
-              "nextState": {
-                0: "close",
-                1: "error"
-              },
-              "buttons": {
-                "submit": false,
-                "back": false,
-                "skip": false,
-                "close": true,
-                "submitButtonText": null
-              }
-            },
-            "skip": {
-              "nextState": {
-                0: "close",
-                1: "error"
-              },
-              "buttons": {
-                "submit": false,
-                "back": false,
-                "skip": false,
-                "close": true,
-                "submitButtonText": null
-              }
-            },
-            "legal_info": {
-              "nextState": {
-                0: "form",
-                1: "error"
-              },
-              "buttons": {
-                "submit": false,
-                "back": true,
-                "skip": false,
-                "close": false,
-                "submitButtonText": null
-              }
+            'buttons': {
+              'submit': true,
+              'back': false,
+              'skip': true,
+              'close': false,
+              'submitButtonText': 'ADOPTER_REGISTRATION.MODAL.CONTINUE'
             }
-        }
-        
-        if(mode == "slim")
+          },
+          'form': {
+            'nextState': {
+              0: 'information',
+              1: 'save',
+              2: 'legal_info',
+              3: 'update',
+              4: 'delete_submit'
+            },
+            'buttons': {
+              'submit': true,
+              'back': true,
+              'skip': false,
+              'close': false,
+              'submitButtonText': 'SUBMIT'
+            }
+          },
+          'save': {
+            'nextState': {
+              0: 'thank_you',
+              1: 'error'
+            },
+            'buttons': {
+              'submit': false,
+              'back': false,
+              'skip': false,
+              'close': false,
+              'submitButtonText': null
+            }
+          },
+          'update': {
+            'nextState': {
+              0: 'close',
+              1: 'error'
+            },
+            'buttons': {
+              'submit': false,
+              'back': false,
+              'skip': false,
+              'close': false,
+              'submitButtonText': null
+            }
+          },
+          'delete_submit': {
+            'nextState': {
+              0: 'form',
+              1: 'delete'
+            },
+            'buttons': {
+              'submit': true,
+              'back': true,
+              'skip': false,
+              'close': false,
+              'submitButtonText': 'CONFIRM'
+            }
+          },
+          'delete': {
+            'nextState': {
+              0: 'close',
+              1: 'error'
+            },
+            'buttons': {
+              'submit': false,
+              'back': false,
+              'skip': false,
+              'close': false,
+              'submitButtonText': null
+            }
+          },
+          'thank_you': {
+            'nextState': {
+              0: 'close',
+              1: 'error'
+            },
+            'buttons': {
+              'submit': false,
+              'back': false,
+              'skip': false,
+              'close': true,
+              'submitButtonText': null
+            }
+          },
+          'skip': {
+            'nextState': {
+              0: 'close',
+              1: 'error'
+            },
+            'buttons': {
+              'submit': false,
+              'back': false,
+              'skip': false,
+              'close': true,
+              'submitButtonText': null
+            }
+          },
+          'legal_info': {
+            'nextState': {
+              0: 'form',
+              1: 'error'
+            },
+            'buttons': {
+              'submit': false,
+              'back': true,
+              'skip': false,
+              'close': false,
+              'submitButtonText': null
+            }
+          }
+        };
+
+        if(mode == 'slim')
         {
           delete states.information;
           delete states.skip;
-          
-          states.form.nextState[0] = "close";
+
+          states.form.nextState[0] = 'close';
           states.form.buttons.back = false;
           states.form.buttons.close = true;
         }
-        
-        return states
+
+        return states;
       },
       getInitialState: function(mode) {
-        if(mode == "slim")
-          return "form";
+        if(mode == 'slim')
+          return 'form';
         else
-          return "information";
+          return 'information';
       }
     };
   }]);

@@ -24,7 +24,7 @@
 angular.module('adminNg.controllers')
 .controller('NavCtrl', ['$scope', '$rootScope', '$location', '$window', '$resource', '$routeParams', 'Language',
   'hotkeys', 'ResourceModal', function ($scope, $rootScope, $location, $window, $resource, $routeParams, Language,
-      hotkeys, ResourceModal) {
+    hotkeys, ResourceModal) {
     // FIXME Move this information to the Language service so it can be
     // fetched via Language.getAvailableLanguages().
 
