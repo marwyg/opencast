@@ -38,6 +38,8 @@ public interface ServiceRegistry {
    *          The base URL for this server
    * @param address
    *          The IP address of this host
+   * @param nodeName
+   *          Human readable description of this node
    * @param memory
    *          The allocated memory of this host
    * @param cores
@@ -47,7 +49,7 @@ public interface ServiceRegistry {
    * @throws ServiceRegistryException
    *           if communication with the service registry fails
    */
-  void registerHost(String host, String address, long memory, int cores, float maxLoad)
+  void registerHost(String host, String address, String nodeName, long memory, int cores, float maxLoad)
           throws ServiceRegistryException;
 
   /**
@@ -504,6 +506,31 @@ public interface ServiceRegistry {
   List<String> getJobPayloads(String operation) throws ServiceRegistryException;
 
   /**
+   * Return the payload of a specified number of jobs for a specified operation type.
+   *
+   * @param operation
+   *          Operation type to get payload for
+   * @param limit
+   *          How many results to return
+   * @param offset
+   *          Offset for the set of returned results
+   * @return Serialized workflows
+   * @throws ServiceRegistryException
+   *          if there is a problem accessing the service registry
+   */
+  List<String> getJobPayloads(String operation, int limit, int offset) throws ServiceRegistryException;
+
+  /**
+   * Return the number of jobs for a specified operation type.
+   *
+   * @param operation
+   *          Operation type to check for
+   * @return Number of jobs for the specified operation type.
+   * @throws ServiceRegistryException
+   */
+  int getJobCount(String operation) throws ServiceRegistryException;
+
+  /**
    * Get the list of active jobs.
    *
    * @return list of active jobs
@@ -599,6 +626,16 @@ public interface ServiceRegistry {
    *           if there is a problem accessing the service registry
    */
   List<HostRegistration> getHostRegistrations() throws ServiceRegistryException;
+
+  /**
+   * Finds host registration for the given hostname.
+   *
+   * @param hostname to lookup
+   * @return host registrations
+   * @throws ServiceRegistryException
+   *           if there is a problem accessing the service registry or the hostname is not found
+   */
+  HostRegistration getHostRegistration(String hostname) throws ServiceRegistryException;
 
   /**
    * Gets performance and runtime statistics for each known service registration.

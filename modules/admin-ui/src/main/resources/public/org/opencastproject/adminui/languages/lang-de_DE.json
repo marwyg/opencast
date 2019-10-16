@@ -10,8 +10,8 @@
    "SAVE": "Speichern",
    "LOGOUT": "Ausloggen",
    "RESET": "Zurücksetzen",
-   "SELECT_NO_OPTION_SELECTED": "No option selected",
-   "SELECT_NO_OPTIONS_AVAILABLE": "No options available",
+   "SELECT_NO_OPTION_SELECTED": "Keine Option ausgewählt",
+   "SELECT_NO_OPTIONS_AVAILABLE": "Keine Optionen verfügbar",
    "YES": "Ja",
    "LANGUAGES": {
       "ARABIC": "Arabisch",
@@ -57,7 +57,6 @@
             "GROUP": "Die folgende Gruppe wird gelöscht",
             "USER": "Der folgende Benutzer wird gelöscht",
             "THEME": "Das folgende Branding wird gelöscht",
-            "EMAIL": "Die folgende E-Mail-Vorlage wird gelöscht",
             "LOCATION": "Folgender Raum wird entfernt"
          },
          "NAME": "Name"
@@ -66,7 +65,8 @@
          "CONFIRMATION": "Bestätigung"
       },
       "WARNINGS": {
-         "SERIES_HAS_EVENTS": "Diese Serie enthält noch Events. Das Löschen der Serie löscht nicht die Events."
+         "SERIES_HAS_EVENTS": "Diese Serie enthält noch Events. Das Löschen der Serie löscht nicht die Events.",
+         "EVENT_WILL_BE_GONE": "Wenn Sie fortfahren, wird das Ereignis unwiderruflich gelöscht."
       },
       "ERRORS": {
          "SERIES_HAS_EVENTS": "Diese Serie enthält Events und kann daher nicht gelöscht werden."
@@ -124,23 +124,16 @@
       "SERIES_NOT_UPDATED": "Diese Serie konnte nicht gespeichert werden",
       "SERIES_NOT_UPDATED_ID": "Die Serie {{ id }} konnte nicht gespeichert werden",
       "SERIES_NOT_UPDATED_ALL": "Keine der Serien konnte gespeichert werden",
-      "EVENTS_DELETED": "Die Aufzeichnung wurde gelöscht",
-      "EVENTS_NOT_DELETED": "Die Aufzeichnung(en) konnten nicht gelöscht werden",
-      "EVENTS_NOT_DELETED_NOT_AUTHORIZED": "Die Aufzeichnung konnte nicht gelöscht werden, weil Sie nicht dazu berechtigt sind.",
+      "EVENT_DELETED": "Die Aufzeichnung wurde gelöscht.",
+      "EVENT_WILL_BE_DELETED": "Die Aufzeichnung wird gelöscht",
+      "EVENTS_DELETED": "Die Aufzeichnungen werden gelöscht.",
+      "EVENTS_NOT_DELETED": "Die Aufzeichnung(en) konnten nicht gelöscht werden.",
+      "EVENTS_NOT_DELETED_NOT_AUTHORIZED": "Die Aufzeichnungen konnten nicht gelöscht werden da Sie nicht dazu berechtigt sind.",
       "SERIES_DELETED": "Die Serie wurde gelöscht",
       "SERIES_NOT_DELETED": "Die Serie konnte nicht gelöscht werden",
       "LOCATION_DELETED": "Das Aufzeichnungsgerät wurde entfernt",
       "LOCATION_NOT_DELETED": "Das Aufzeichnungsgerät konnte nicht entfernt werden",
       "LOCATION_NOT_DELETED_NOT_AUTHORIZED": "Der Raum konnte nicht entfernt werden, weil Sie nicht dazu berechtigt sind.",
-      "EMAIL_TEMPLATE_CREATED": "Die Vorlage wurde erstellt",
-      "EMAIL_TEMPLATE_NOT_CREATED": "Die Vorlage konnte nicht erstellt werden",
-      "EMAIL_TEMPLATE_SAVED": "Die Vorlage wurde gespeichert",
-      "EMAIL_TEMPLATE_NOT_SAVED": "Die Vorlage konnte nicht gespeichert werden",
-      "EMAIL_TEMPLATE_DELETED": "Die Vorlage wurde gelöscht",
-      "EMAIL_TEMPLATE_NOT_DELETED": "Die Vorlage konnte nicht gelöscht werden",
-      "EMAIL_TEMPLATE_NAME_TAKEN": "Dieser Name wird bereits verwendet",
-      "EMAIL_SENT": "Die Nachricht wurde gesendet",
-      "EMAIL_NOT_SENT": "Die Nachricht konnte nicht gesendet werden",
       "CONFLICT_DETECTED": "Planungskonflikt: Die neue Aufzeichnung überlappt zeitlich mit einer bereits bestehenden Aufzeichnung. Bitte Ort, Datum oder Zeit anpassen.",
       "CONFLICT_BULK_DETECTED": "Konflikt: Das Ändern der Aufzeichnungsdaten resultiert in Konflikten. Bitte Ort, Datum oder Zeit anpassen.",
       "CONFLICT_ALREADY_ENDED": "Planungskonflikt: Aufzeichnungen können nicht in der Vergangenheit geplant werden.",
@@ -153,11 +146,6 @@
       "SERIES_ACL_LOCKED": "Das Editieren von Zugriffsrichtlinien ist nicht erlaubt, solange Aufnahmen verarbeitet werden, die Teil der Serie sind",
       "SERIES_ACL_MISSING_READWRITE_ROLE": "Der Zugriffsrichtlinie erfordert mindestens eine Rolle mit Lese- und Schreibberechtigungen.",
       "EVENT_ACL_MISSING_READWRITE_ROLE": "Der Zugriffsrichtlinie erfordert mindestens eine Rolle mit Lese- und Schreibberechtigungen.",
-      "EVENT_PARTICIPATION_STATUS_UPDATE_SUCCESS": "Opt-Out-Status wurde aktualisiert.",
-      "EVENT_PARTICIPATION_STATUS_UPDATE_ERROR": "Fehler beim Aktualisieren des Opt-Out-Statusses.",
-      "EVENT_PARTICIPATION_STATUS_READONLY": "Der Teilnahmestatus kann nicht aktualisiert werden, da das Startdatum in der Vergangenheit liegt.",
-      "SERIES_PARTICIPATION_STATUS_UPDATE_SUCCESS": "Opt-Out-Status wurde aktualisiert.",
-      "SERIES_PARTICIPATION_STATUS_UPDATE_ERROR": "Fehler beim Aktualisieren des Opt-Out-Statusses.",
       "THEME_NAME_ALREADY_TAKEN": "Dieser Name wird bereits verwendet",
       "THEME_NAME_EMPTY": "Der Name darf nicht leer sein",
       "BUMPER_UPLOAD_ERROR": "Fehler beim Hochladen von Medien",
@@ -174,8 +162,8 @@
       "THEME_NOT_DELETED": "Das Branding konnte nicht gelöscht werden",
       "TASK_CREATED": "Der Task wurde erstellt",
       "TASK_NOT_CREATED": "Der Task konnte nicht erstellt werden",
-      "VIDEO_CUT_NOT_SAVED": "Die Bearbeitungsinformationen konnten nicht gespeichert werden",
-      "VIDEO_CUT_SAVED": "Die Bearbeitungsinformationen wurden gespeichert",
+      "VIDEO_CUT_NOT_SAVED": "Die Änderungen konnte nicht gespeichert werden",
+      "VIDEO_CUT_SAVED": "Die Änderungen wurden gespeichert",
       "VIDEO_CUT_PROCESSING": "Das Video wird verarbeitet…",
       "THUMBNAIL_CHANGE_FAILED": "Das Vorschaubild konnte nicht aktualisiert werden.",
       "VIDEO_SOURCE_TRACKS_INVALID": "Keine Videospuren selektiert",
@@ -186,13 +174,6 @@
    },
    "BULK_ACTIONS": {
       "CAPTION": "Aktionen",
-      "SEND_MESSAGE": "Nachricht senden",
-      "WARNING": "Achtung",
-      "EDIT_STATUS": {
-         "CAPTION": "Status bearbeiten",
-         "READY_FOR_RECORDING": "Bereit für die Aufnahme",
-         "OPTED_OUT": "Wird nicht aufgezeichnet"
-      },
       "DELETE": {
          "SERIES": {
             "CAPTION": "Löschen",
@@ -202,22 +183,7 @@
          "EVENTS": {
             "CAPTION": "Löschen",
             "DELETE_EVENTS": "Aufzeichnungen löschen",
-            "PUBLISHED": {
-               "NONE": "Keine der ausgewählten Aufzeichnungen muss vor dem Löschen zurückgezogen werden.",
-               "WARNING": "Die folgenden Aufzeichnungen können nicht gelöscht werden, da sie veröffentlicht sind. Das Löschen würde keine Möglichkeit lassen, die veröffentlichten Dateien zu entfernen. Wählen Sie stattdessen einen Workflow aus, um die Aufzeichnungen zuerst zurückzuziehen und dann zu löschen."
-            },
-            "RETRACT_EVENTS": "Aufzeichnungen zurückziehen",
-            "SELECT_RETRACT_TASK": "Wählen Sie einen Task für das Zurückziehen aus.",
-            "SUMMARY": {
-               "EVENTS_DELETED": "Zu löschende Aufzeichnungen",
-               "EVENTS_RETRACTED": "Zurückzuziehende Aufzeichnungen",
-               "RETRACT_WORKFLOW": "Workflow zum Zurückziehen von Aufzeichnungen"
-            },
-            "UNAUTHORIZED": "Sie sind nicht dazu berechtigt, die hervorgehobenen Aufzeichnungen zu löschen. Um fortzufahren können Sie diese von der Auswahl entfernen.",
-            "UNPUBLISHED": {
-               "NONE": "Keine der ausgewählten Veranstaltungen kann gelöscht werden, ohne dass verwaiste Dateien übrig bleiben."
-            },
-            "BUTTON": "Entfernen"
+            "UNAUTHORIZED": "Sie sind nicht dazu berechtigt, die hervorgehobenen Aufzeichnungen zu löschen. Um fortzufahren können Sie diese von der Auswahl entfernen."
          }
       },
       "DELETE_EVENTS_WARNING_LINE1": "Sobald alle Metadaten gelöscht sind, werden die Audio- und Video-Dateien gelöscht und können nicht wiederhergestellt werden.",
@@ -291,7 +257,7 @@
       "NEXT_STEP": "Weiter",
       "BACK": "Zurück",
       "CREATE": "Anlegen",
-      "RETRACT": "Zurückziehen",
+      "DELETE": "Löschen",
       "UPDATE": "Aktualisieren",
       "DURATION": {
          "HOURS": "Stunden",
@@ -326,16 +292,12 @@
       },
       "CONFIGURATION": {
          "TITLE": "Konfiguration"
+      },
+      "STATISTICS": {
+         "TITLE": "Statistiken"
       }
    },
    "EVENTS": {
-      "RETRACT": {
-         "CAPTION": "Aufzeichnungen zurückziehen",
-         "ID": "ID",
-         "SELECT_TASK": "Task auswählen",
-         "SUMMARY": "Zusammenfassung",
-         "WARNING": "Diese Aufzeichnung ist mindestens einmal veröffentlicht worden. Sie muss zurückgezogen werden, bevor sie gelöscht werden kann. Wählen Sie aus den Tasks unten, um die Aufzeichnung zurückzuziehen."
-      },
       "LICENSE": {
          "ALLRIGHTS": "Alle Rechte vorbehalten",
          "CCBY": "CC BY",
@@ -348,28 +310,6 @@
          "BSD": "BSD",
          "CCND": "CCND",
          "GPL": "GPL"
-      },
-      "SEND_MESSAGE": {
-         "CAPTION": "Nachricht senden",
-         "TABS": {
-            "RECIPIENTS": "Empfänger",
-            "MESSAGE": "Nachricht",
-            "SUMMARY": "Zusammenfassung"
-         },
-         "RECIPIENTS": {
-            "AUDIT_TRAIL_CAPTION": "Protokollieren",
-            "AUDIT_TRAIL_DESCRIPTION": "Auswählen, um Nachtricht zu protokollieren",
-            "AUDIT_TRAIL_LABEL": ""
-         },
-         "MESSAGE": {
-            "EMAIL_TEMPLATE": "Wählen Sie eine E-Mail-Vorlage",
-            "SUBJECT": "Betreff",
-            "MESSAGE": "Nachricht",
-            "INCLUDE_SIGNATURE": "Signatur an E-Mail anhängen"
-         },
-         "SUMMARY": {
-            "MESSAGE_SUMMARY": "Zusammenfassung"
-         }
       },
       "EVENTS": {
          "NEW": {
@@ -500,7 +440,6 @@
          "ADD_EVENT": "Aufzeichnung hinzufügen",
          "TABLE": {
             "CAPTION": "Ereignisse",
-            "CREATORS": "Autoren",
             "TITLE": "Titel",
             "PRESENTERS": "Vortragende(r)",
             "SERIES": "Serien",
@@ -515,14 +454,13 @@
             "LAST": "Letzte",
             "NEXT": "Weiter",
             "MANAGED_ACL": "Zugriffsrechte",
-            "SCHEDULING_STATUS": "Status",
             "WORKFLOW_STATE": "Fortschritt",
-            "REVIEW_STATUS": "Prüfstatus",
             "PREVIOUS": "Zurück",
             "NOCONTENT": "Keine Daten verfügbar",
             "PUBLISHED": "Veröffentlicht",
             "WEEKDAY": "Wochentag",
             "TOOLTIP": {
+               "ASSETS": "Anlagedetails öffnen",
                "START": "Nach diesem Startdatum filtern",
                "SERIES": "Nach dieser Serie filtern",
                "STATUS": "Nach diesem Verarbeitungsstatus filtern",
@@ -536,13 +474,8 @@
                "PRESENTER": "Nach diesem Vortragenden filtern"
             }
          },
-         "SCHEDULING_STATUS": {
-            "READY_FOR_RECORDING": "Bereit für die Aufnahme",
-            "OPTED_OUT": "Wird nicht aufgezeichnet"
-         },
          "STATUS": {
             "SCHEDULED": "Geplant",
-            "OPTEDOUT": "Wird nicht aufgezeichnet",
             "RECORDING": "Zeichnet auf",
             "UPLOADING": "Lädt hoch",
             "INGESTING": "Importiert",
@@ -554,6 +487,15 @@
             "PROCESSING_FAILURE": "Verarbeitungs-Fehler",
             "PROCESSING_CANCELED": "Verarbeitung abgebrochen"
          },
+         "STATE_MAPPING": {
+            "RETRACTING": "Wird zurückgezogen",
+            "DELETING": "Löschen",
+            "DUPLICATING": "Wird dupliziert",
+            "PUBLISHING": "Wird veröffentlicht",
+            "IMPORTING": "Wird importiert",
+            "REPUBLISHING_METADATA": "Metadaten werden neu publiziert",
+            "UPDATING_PREVIEWS": "Vorschauen werden aktualisiert"
+         },
          "DETAILS": {
             "HEADER": "Aufzeichnungs-Details - {{resourceId}}",
             "TABS": {
@@ -564,16 +506,14 @@
                "SCHEDULING": "Planung",
                "WORKFLOWS": "Workflows",
                "ACCESS": "Zugriffsrechte",
-               "COMMENTS": "Kommentare"
+               "COMMENTS": "Kommentare",
+               "STATISTICS": "Statistik"
             },
             "PUBLICATIONS": {
                "CAPTION": "Veröffentlichungen",
                "NO_PUBLICATIONS_AVAILABLE": "Diese Aufzeichnung wurde noch nicht publiziert",
                "PUBLICATION_DESCRIPTION": "Diese Aufzeichnung wurde zu folgenden Kanälen publiziert:",
                "LIVE_EVENT_NOT_IN_PROGRESS": "Diese Aufzeichnung ist momentan nicht verfügbar",
-               "SCHEDULING_STATUS": "Status",
-               "READY_FOR_RECORDING": "Bereit für die Aufnahme",
-               "OPTED_OUT": "Wird nicht aufgezeichnet",
                "CUSTOM": "Benutzerdefiniert",
                "ENGAGE": "Engage",
                "ENGAGE_LIVE": "Enagage Live",
@@ -809,6 +749,9 @@
                   "PROCESSING_FAILURE": "Verarbeitungs-Fehler"
                }
             },
+            "STATISTICS": {
+               "CAPTION": "Statistik"
+            },
             "METADATA": {
                "CAPTION": "Aufzeichnungs-Details",
                "TITLE": "Titel",
@@ -840,20 +783,6 @@
             },
             "SCHEDULING": {
                "CAPTION": "Publikations-Status",
-               "REVIEW_STATUS": {
-                  "CAPTION": "Prüfstatus"
-               },
-               "OPTEDOUT": {
-                  "CAPTION": "Opt-Out-Status",
-                  "READY": "Bereit zur Aufnahme",
-                  "OPTEDOUT": "Wird nicht aufgezeichnet"
-               },
-               "MESSAGES": {
-                  "CAPTION": "Nachrichten",
-                  "CREATION_DATE": "Erstellungsdatum",
-                  "SENDER": "Absender",
-                  "SUBJECT": "Betreff"
-               },
                "PLACEHOLDER": {
                   "PRESENTERS": "Vortragende(r)"
                }
@@ -1027,7 +956,7 @@
             "CAPTION": "Serie",
             "TITLE": "Serie",
             "HAS_EVENTS": "Enthält Aufzeichnungen",
-            "CREATORS": "Organisator(en)",
+            "ORGANIZERS": "Organisator(en)",
             "CONTRIBUTORS": "Mitwirkende",
             "CREATED": "Erstellt",
             "MANAGED_ACL": "Zugriffsrechte",
@@ -1044,10 +973,10 @@
             "TABS": {
                "METADATA": "Metadaten",
                "EXTENDED_METADATA": "Metadaten II",
-               "PARTICIPATION": "Beteiligung",
                "EVENTS": "Ereignisse",
                "PERMISSIONS": "Zugriffsrechte",
-               "THEME": "Branding"
+               "THEME": "Branding",
+               "STATISTICS": "Statistik"
             },
             "ACCESS": {
                "CAPTION": "Zugriffsrechte",
@@ -1089,24 +1018,6 @@
                "LANGUAGE": "Sprache",
                "LICENSE": "Lizenz",
                "DESCRIPTION": "Beschreibung"
-            },
-            "PARTICIPATION": {
-               "CAPTION": "Teilnahme-Status-Vorlage",
-               "WARNING_TEMPLATE": "Der Serien-Teilnahme-Status wird als Standardwert für alle neuen Aufzeichnungen der Serie verwendet.",
-               "REVIEW_STATUS": {
-                  "CAPTION": "Prüfstatus"
-               },
-               "OPTEDOUT": {
-                  "CAPTION": "Opt-Out-Status",
-                  "READY": "Bereit zur Aufnahme",
-                  "OPTEDOUT": "Wird nicht aufgezeichnet"
-               },
-               "MESSAGES": {
-                  "CAPTION": "Nachrichten",
-                  "CREATION_DATE": "Erstellungsdatum",
-                  "SENDER": "Absender",
-                  "SUBJECT": "Betreff"
-               }
             },
             "EVENTS": {
                "TITLE": "Titel",
@@ -1418,34 +1329,7 @@
          "ADD_THEME": "Branding hinzufügen"
       },
       "NAVIGATION": {
-         "MAIL_TEMPLATES": "E-Mail-Vorlagen",
-         "MAIL_SERVERS": "E-Mail-Einstellungen",
          "THEMES": "Brandings"
-      },
-      "EMAIL_TEMPLATES": {
-         "TABLE": {
-            "CAPTION": "E-Mail-Vorlagen",
-            "NAME": "Name",
-            "CREATOR": "Author",
-            "CREATED": "Erstellt",
-            "ACTION": "Aktionen"
-         },
-         "DETAILS": {
-            "NEWCAPTION": "Vorlage erstellen",
-            "EDITCAPTION": "Vorlage bearbeiten",
-            "TABS": {
-               "MESSAGE": "Nachricht",
-               "SUMMARY": "Zusammenfassung"
-            },
-            "MESSAGE": {
-               "NAME": "Name",
-               "SUBJECT": "Betreff",
-               "MESSAGE": "Nachricht"
-            },
-            "SUMMARY": {
-               "MESSAGE_SUMMARY": "Zusammenfassung der Nachricht"
-            }
-         }
       },
       "THEMES": {
          "TABLE": {
@@ -1541,24 +1425,16 @@
       "JOBS": {
          "TABLE": {
             "ID": "Job ID",
-            "ACTION": "Aktionen",
             "CAPTION": "Aufgaben",
             "CREATED": "Erstellt",
             "CREATOR": "Autor",
             "HOST_NAME": "Hostname",
+            "NODE_NAME": "Knotenname",
             "OPERATION": "Vorgang",
             "STARTED": "Gestartet",
             "STATUS": "Status",
             "SUBMITTED": "Übermittelt",
             "TYPE": "Typ"
-         },
-         "DETAILS": {
-            "HEADER": "Job-Details {{resourceId}}",
-            "TABS": {
-               "GENERAL": "Allgemein",
-               "OPERATIONS": "Operationen",
-               "INCIDENTS": "Vorfälle"
-            }
          },
          "STATUS": {
             "QUEUED": "In Warteschlange",
@@ -1579,6 +1455,7 @@
             "CAPTION": "Server",
             "STATUS": "Status",
             "HOST_NAME": "Hostname",
+            "NODE_NAME": "Knotenname",
             "CORES": "Kerne",
             "COMPLETED": "Jobs abgeschlossen",
             "RUNNING": "Jobs in Bearbeitung",
@@ -1586,7 +1463,6 @@
             "MEAN_RUN_TIME": "Mittlere Laufzeit",
             "MEAN_QUEUE_TIME": "Mittlere Wartezeit",
             "MAINTENANCE": "Wartungsarbeiten",
-            "ACTION": "Aktionen",
             "MAINTENANCE_OFF": "Wartungsmodus aktivieren",
             "MAINTENANCE_ON": "Wartungsmodus beenden"
          }
@@ -1597,6 +1473,7 @@
             "STATUS": "Status",
             "NAME": "Dienstname",
             "HOST_NAME": "Hostname",
+            "NODE_NAME": "Knotenname",
             "COMPLETED": "Jobs abgeschlossen",
             "RUNNING": "Jobs in Bearbeitung",
             "QUEUED": "Jobs in Warteschlange",
@@ -1642,18 +1519,24 @@
       },
       "ACTIONS": {
          "SPLIT": "Auftrennen",
-         "CUT": "Schneiden",
-         "REPLAY_SEGMENT": "Segment erneut abspielen",
-         "REPLAY_END_OF_SEGMENT": "Segmentende",
-         "REPLAY_SEGMENT_WITH_PREROLL": "Übergang testen",
+         "SPLIT_TOOLTIP": "Segment an der aktuellen Cursor-Position teilen.",
+         "CUT": "Aus-/Einblenden",
+         "CUT_TOOLTIP": "Verstecke oder zeige den ausgewählten Teil des Videos.",
+         "REPLAY_SEGMENT": "Anfang des Segments abspielen",
+         "REPLAY_SEGMENT_TOOLTIP": "Spiele das aktuelle Segment von Anfang an.",
+         "REPLAY_END_OF_SEGMENT": "Ende des Segments abspielen",
+         "REPLAY_END_OF_SEGMENT_TOOLTIP": "Spiele ein paar Sekunden am Ende des aktuellen Segments ab.",
+         "REPLAY_SEGMENT_WITH_PREROLL": "Übergang abspielen",
+         "REPLAY_SEGMENT_WITH_PREROLL_TOOLTIP": "Spiele das Ende des vorherigen und den Beginn des nächsten Segments ab.",
          "UNDO": "Widerrufen",
          "REDO": "Wiederholen",
-         "CLEAR_SEGMENTS": "Segmente löschen",
-         "CLEAR_SELECTED_SEGMENT": "Ausgewähltes Segment löschen"
+         "CLEAR_SEGMENTS": "Alle Segmente entfernen",
+         "CLEAR_SEGMENTS_TOOLTIP": "Alle Segmente zu einem großen Segment zusammenfassen."
       },
       "SEGMENTS": {
          "REMOVE_SEGMENT": "Segment löschen",
-         "USE_SEGMENT": "Dieses Segment nutzen",
+         "SHOW_SEGMENT": "Segment anzeigen",
+         "HIDE_SEGMENT": "Segment verbergen",
          "START": "Start",
          "END": "Ende"
       },
@@ -1816,9 +1699,6 @@
          "LOCATION": {
             "LABEL": "Raum"
          },
-         "OPTEDOUT": {
-            "LABEL": "Wird nicht aufgezeichnet"
-         },
          "PERIOD": {
             "LABEL": "Zeitraum"
          },
@@ -1830,12 +1710,6 @@
          },
          "PROGRESS": {
             "LABEL": "Fortschritt"
-         },
-         "REVIEW_STATUS": {
-            "LABEL": "Prüfstatus",
-            "CONFIRMED": "Bestätigt",
-            "UNCONFIRMED": "Unbestätigt",
-            "UNSENT": "Nicht gesendet"
          },
          "SERIES": {
             "LABEL": "Serien"
@@ -1880,6 +1754,9 @@
          "HOSTNAME": {
             "LABEL": "Hostname"
          },
+         "NODE_NAME": {
+            "LABEL": "Knotenname"
+         },
          "STATUS": {
             "LABEL": "Status",
             "PAUSED": "Pausiert",
@@ -1921,6 +1798,9 @@
          "HOSTNAME": {
             "LABEL": "Hostname"
          },
+         "NODE_NAME": {
+            "LABEL": "Knotenname"
+         },
          "STATUS": {
             "LABEL": "Status",
             "MAINTENANCE": "Wartungsarbeiten",
@@ -1934,6 +1814,9 @@
          },
          "HOSTNAME": {
             "LABEL": "Hostname"
+         },
+         "NODE_NAME": {
+            "LABEL": "Knotenname"
          },
          "NAME": {
             "LABEL": "Name"
@@ -2079,6 +1962,29 @@
    "EDITABLE": {
       "MULTI": {
          "PLACEHOLDER": "Einen Wert mit Enter bestätigen um weitere Werte einzufügen"
+      }
+   },
+   "STATISTICS": {
+      "NOT_AVAILABLE": "Die Statistik kann aktuell nicht angezeigt werden. Bitte versuchen Sie es später nochmals.",
+      "UNSUPPORTED_TYPE": "Diese Statistik-Daten können nicht dargestellt werden.",
+      "FROM": "Von",
+      "TO": "Bis",
+      "TOTAL": "Summe",
+      "GRANULARITY": "Granularität",
+      "NAVIGATION": {
+         "ORGANIZATION": "Organisation"
+      },
+      "TITLE": {
+         "RANDOM": "Zufallsdaten",
+         "VIEWS_SUM": "Zugriffe",
+         "VIEWS_AVG": "Durchschnittliche Anzahl Zugriffe",
+         "PUBLISHEDHOURS": "Veröffentlichte Stunden an Videomaterial"
+      },
+      "DESCRIPTION": {
+         "RANDOM": "Diese Zufallsdaten dienen ausschließlich Test- und Demonstrationszwecken. Um diese Darstellung zu deaktivieren, können Sie die entsprechende Konfiguration in etc/providers entfernen",
+         "VIEWS_SUM": "Diese Statistik zeigt die Summe der Zugriffe pro Zeiteinheit.",
+         "VIEWS_AVG": "Diese Statistik zeigt die durchschnittliche Anzahl von Zugriffe pro Zeiteinheit.",
+         "PUBLISHEDHOURS": "Dies zeigt die veröffentlichten Videostunden an"
       }
    }
 }

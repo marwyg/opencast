@@ -211,14 +211,6 @@ public class JpaUser implements User {
   }
 
   /**
-   * @see org.opencastproject.security.api.User#canLogin()
-   */
-  @Override
-  public boolean canLogin() {
-    return true;
-  }
-
-  /**
    * @see org.opencastproject.security.api.User#getUsername()
    */
   @Override
@@ -275,7 +267,7 @@ public class JpaUser implements User {
    */
   @Override
   public int hashCode() {
-    return EqualsUtil.hash(username, organization, provider);
+    return Objects.hash(username, organization, provider);
   }
 
   /**

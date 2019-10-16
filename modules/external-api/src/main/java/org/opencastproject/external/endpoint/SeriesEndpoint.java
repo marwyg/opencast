@@ -32,7 +32,6 @@ import static org.apache.commons.lang3.StringUtils.trimToNull;
 import static org.opencastproject.external.common.ApiVersion.VERSION_1_2_0;
 import static org.opencastproject.util.DateTimeSupport.toUTC;
 import static org.opencastproject.util.RestUtil.getEndpointUrl;
-import static org.opencastproject.util.doc.rest.RestParameter.Type.BOOLEAN;
 import static org.opencastproject.util.doc.rest.RestParameter.Type.STRING;
 
 import org.opencastproject.external.common.ApiMediaType;
@@ -120,7 +119,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 @Path("/")
-@Produces({ ApiMediaType.JSON, ApiMediaType.VERSION_1_0_0, ApiMediaType.VERSION_1_1_0, ApiMediaType.VERSION_1_2_0 })
+@Produces({ ApiMediaType.JSON, ApiMediaType.VERSION_1_0_0, ApiMediaType.VERSION_1_1_0, ApiMediaType.VERSION_1_2_0, ApiMediaType.VERSION_1_3_0 })
 @RestService(name = "externalapiseries", title = "External API Series Service", notes = {}, abstractText = "Provides resources and operations related to the series")
 public class SeriesEndpoint {
 
@@ -430,7 +429,7 @@ public class SeriesEndpoint {
     for (SeriesCatalogUIAdapter adapter : catalogUIAdapters) {
       final Opt<MetadataCollection> optSeriesMetadata = adapter.getFields(id);
       if (optSeriesMetadata.isSome()) {
-        metadataList.add(adapter.getFlavor(), adapter.getUITitle(), optSeriesMetadata.get());
+        metadataList.add(adapter.getFlavor().toString(), adapter.getUITitle(), optSeriesMetadata.get());
       }
     }
     MetadataCollection collection = getSeriesMetadata(optSeries.get());
@@ -564,7 +563,7 @@ public class SeriesEndpoint {
     if (StringUtils.trimToNull(type) == null) {
       return false;
     }
-    MediaPackageElementFlavor catalogFlavor = MediaPackageElementFlavor.parseFlavor(catalog.getFlavor());
+    MediaPackageElementFlavor catalogFlavor = MediaPackageElementFlavor.parseFlavor(catalog.getFlavor().toString());
     try {
       MediaPackageElementFlavor flavor = MediaPackageElementFlavor.parseFlavor(type);
       return flavor.equals(catalogFlavor);
@@ -892,7 +891,7 @@ public class SeriesEndpoint {
       SeriesCatalogUIAdapter adapter = null;
       for (SeriesCatalogUIAdapter seriesCatalogUIAdapter : indexService.getSeriesCatalogUIAdapters()) {
         MediaPackageElementFlavor catalogFlavor = MediaPackageElementFlavor
-                .parseFlavor(seriesCatalogUIAdapter.getFlavor());
+                .parseFlavor(seriesCatalogUIAdapter.getFlavor().toString());
         if (catalogFlavor.equals(flavor)) {
           adapter = seriesCatalogUIAdapter;
           collection = seriesCatalogUIAdapter.getRawFields();
@@ -944,7 +943,7 @@ public class SeriesEndpoint {
   @RestQuery(name = "updateseriesacl", description = "Updates a series' access policy.", returnDescription = "", pathParameters = {
           @RestParameter(name = "seriesId", description = "The series id", isRequired = true, type = STRING) }, restParameters = {
                   @RestParameter(name = "acl", isRequired = true, description = "Access policy", type = STRING),
-                  @RestParameter(name = "override", isRequired = false, description = "If true the series ACL will take precedence over any existing episode ACL", type = BOOLEAN)}, reponses = {
+                  @RestParameter(name = "override", isRequired = false, description = "If true the series ACL will take precedence over any existing episode ACL", type = STRING)}, reponses = {
                           @RestResponse(description = "The access control list for the specified series is updated.", responseCode = HttpServletResponse.SC_OK),
                           @RestResponse(description = "The specified series does not exist.", responseCode = HttpServletResponse.SC_NOT_FOUND) })
   public Response updateSeriesAcl(@HeaderParam("Accept") String acceptHeader, @PathParam("seriesId") String seriesID,

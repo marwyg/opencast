@@ -24,6 +24,7 @@ package org.opencastproject.index.service.api;
 import org.opencastproject.event.comment.EventComment;
 import org.opencastproject.index.service.catalog.adapter.MetadataList;
 import org.opencastproject.index.service.exception.IndexServiceException;
+import org.opencastproject.index.service.exception.UnsupportedAssetException;
 import org.opencastproject.index.service.impl.index.AbstractSearchIndex;
 import org.opencastproject.index.service.impl.index.event.Event;
 import org.opencastproject.index.service.impl.index.event.EventHttpServletRequest;
@@ -43,6 +44,7 @@ import org.opencastproject.security.api.UnauthorizedException;
 import org.opencastproject.series.api.SeriesException;
 import org.opencastproject.userdirectory.ConflictException;
 import org.opencastproject.util.NotFoundException;
+import org.opencastproject.workflow.api.WorkflowDatabaseException;
 import org.opencastproject.workflow.api.WorkflowException;
 import org.opencastproject.workflow.api.WorkflowInstance;
 
@@ -64,6 +66,10 @@ public interface IndexService {
 
   enum SourceType {
     UPLOAD, UPLOAD_LATER, SCHEDULE_SINGLE, SCHEDULE_MULTIPLE
+  }
+
+  enum EventRemovalResult {
+    SUCCESS, GENERAL_FAILURE, NOT_FOUND, RETRACTING
   }
 
   SearchResult<Group> getGroups(String filter, Opt<Integer> limit, Opt<Integer> offset, Opt<String> sort,
@@ -159,8 +165,10 @@ public interface IndexService {
    *           Thrown if there was an internal server error while creating the event.
    * @throws IllegalArgumentException
    *           Thrown if the provided request was inappropriate.
+   * @throws UnsupportedAssetException
+   *           Thrown if the provided asset file type is not accepted.
    */
-  String createEvent(HttpServletRequest request) throws IndexServiceException, IllegalArgumentException;
+  String createEvent(HttpServletRequest request) throws IndexServiceException, IllegalArgumentException, UnsupportedAssetException;
 
   /**
    * Creates a new event based on a json string and a media package.
@@ -213,6 +221,26 @@ public interface IndexService {
           MediaPackageException, IngestException, NotFoundException, SchedulerException, UnauthorizedException;
 
   /**
+   * Removes an event and retracts it if necessary.
+   *
+   * @param event
+   *          The event to remove.
+   * @param doOnNotFound
+   *      What to do when the event could not be found.
+   * @param retractWorkflowId
+   *          The id of the workflow to use to retract the event if necessary.
+   * @return A result which tells if the event was removed, removal failed, or the event is being retracted and will be removed later.
+   * @throws UnauthorizedException
+   *           Thrown if the action is unauthorized
+   * @throws WorkflowDatabaseException
+   *           Thrown if the workflow database is not reachable. This may be a temporary problem.
+   * @throws NotFoundException
+   *           If the configured retract workflow cannot be found. This is most likely a configuration issue.
+   */
+  EventRemovalResult removeEvent(Event event, Runnable doOnNotFound, String retractWorkflowId)
+      throws UnauthorizedException, WorkflowDatabaseException, NotFoundException;
+
+  /**
    * Removes an event.
    *
    * @param id
@@ -250,9 +278,11 @@ public interface IndexService {
    *           Thrown if the current user is unable to create the new event.
    * @throws IndexServiceException
    *            Thrown if the update assets workflow cannot be started
+   * @throws UnsupportedAssetException
+   *           Thrown if the provided asset file type is not accepted.
    */
   String updateEventAssets(MediaPackage mp, HttpServletRequest request) throws ParseException, IOException,
-          MediaPackageException, NotFoundException, UnauthorizedException, IndexServiceException;
+          MediaPackageException, NotFoundException, UnauthorizedException, IndexServiceException, UnsupportedAssetException;
 
   /**
    * Update an event's metadata using a {@link MetadataList}

@@ -39,8 +39,6 @@ import org.opencastproject.security.api.OrganizationDirectoryService;
 import org.opencastproject.security.api.SecurityService;
 import org.opencastproject.security.util.SecurityUtil;
 import org.opencastproject.series.api.SeriesService;
-import org.opencastproject.workflow.api.WorkflowService;
-import org.opencastproject.workspace.api.Workspace;
 
 import org.apache.commons.lang3.text.WordUtils;
 import org.osgi.service.component.ComponentContext;
@@ -54,17 +52,13 @@ public class OsgiAclServiceFactory extends AbstractIndexProducer implements AclS
   /** The logger */
   private static final Logger logger = LoggerFactory.getLogger(OsgiAclServiceFactory.class);
 
-  private final String clazzName = OsgiAclServiceFactory.class.getName();
-
   private AclDb aclDb;
   private SeriesService seriesService;
   private AssetManager assetManager;
   private AuthorizationService authorizationService;
-  private WorkflowService workflowService;
   private SecurityService securityService;
   private MessageReceiver messageReceiver;
   private MessageSender messageSender;
-  private Workspace workspace;
   /** The organization directory service */
   private OrganizationDirectoryService organizationDirectoryService;
   private ComponentContext cc;
@@ -72,7 +66,7 @@ public class OsgiAclServiceFactory extends AbstractIndexProducer implements AclS
   @Override
   public AclService serviceFor(Organization org) {
     return new AclServiceImpl(org, aclDb, seriesService, assetManager,
-            authorizationService, messageSender, workspace);
+            authorizationService, messageSender);
   }
 
   /** OSGi DI callback. */
@@ -88,11 +82,6 @@ public class OsgiAclServiceFactory extends AbstractIndexProducer implements AclS
   /** OSGi DI callback. */
   public void setAssetManager(AssetManager assetManager) {
     this.assetManager = assetManager;
-  }
-
-  /** OSGi DI callback. */
-  public void setWorkspace(Workspace workspace) {
-    this.workspace = workspace;
   }
 
   /** OSGi DI callback. */

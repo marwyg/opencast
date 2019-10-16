@@ -21,10 +21,14 @@
 
 package org.opencastproject.workflow.impl;
 
+import static org.easymock.EasyMock.createNiceMock;
 import static org.opencastproject.workflow.impl.SecurityServiceStub.DEFAULT_ORG_ADMIN;
 
 import org.opencastproject.assetmanager.api.AssetManager;
+import org.opencastproject.assetmanager.api.Property;
+import org.opencastproject.assetmanager.api.PropertyId;
 import org.opencastproject.assetmanager.api.Snapshot;
+import org.opencastproject.assetmanager.api.Value;
 import org.opencastproject.assetmanager.api.Version;
 import org.opencastproject.assetmanager.api.query.AQueryBuilder;
 import org.opencastproject.assetmanager.api.query.ARecord;
@@ -50,6 +54,7 @@ import org.opencastproject.security.api.SecurityService;
 import org.opencastproject.security.api.UserDirectoryService;
 import org.opencastproject.serviceregistry.api.IncidentService;
 import org.opencastproject.serviceregistry.api.ServiceRegistryInMemoryImpl;
+import org.opencastproject.systems.OpencastConstants;
 import org.opencastproject.util.data.Tuple;
 import org.opencastproject.workflow.api.AbstractWorkflowOperationHandler;
 import org.opencastproject.workflow.api.WorkflowDefinition;
@@ -77,6 +82,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -96,6 +102,7 @@ public class HoldStateTest {
   private WorkflowServiceSolrIndex dao = null;
   private SecurityService securityService = null;
   private ResumableTestWorkflowOperationHandler holdingOperationHandler;
+  private Property property = null;
 
   private File sRoot = null;
 
@@ -176,6 +183,18 @@ public class HoldStateTest {
     MessageSender messageSender = EasyMock.createNiceMock(MessageSender.class);
     EasyMock.replay(messageSender);
 
+    {
+      final AssetManager assetManager = createNiceMock(AssetManager.class);
+      property = EasyMock.createMock(Property.class);
+      EasyMock.expect(assetManager.selectProperties(EasyMock.anyString(), EasyMock.anyString()))
+              .andReturn(Collections.singletonList(property))
+              .anyTimes();
+      EasyMock.expect(assetManager.getMediaPackage(EasyMock.anyString())).andReturn(Opt.none()).anyTimes();
+      EasyMock.expect(assetManager.snapshotExists(EasyMock.anyString())).andReturn(true).anyTimes();
+      EasyMock.replay(assetManager);
+      service.setAssetManager(assetManager);
+    }
+
     ServiceRegistryInMemoryImpl serviceRegistry = new ServiceRegistryInMemoryImpl(service, securityService,
             userDirectoryService, organizationDirectoryService, EasyMock.createNiceMock(IncidentService.class));
 
@@ -225,7 +244,6 @@ public class HoldStateTest {
     is = HoldStateTest.class.getResourceAsStream("/workflow-definition-holdstate.xml");
     def = WorkflowParser.parseWorkflowDefinition(is);
     IOUtils.closeQuietly(is);
-    service.registerWorkflowDefinition(def);
   }
 
   @After
@@ -236,6 +254,13 @@ public class HoldStateTest {
 
   @Test
   public void testHoldAndResume() throws Exception {
+
+    EasyMock.expect(property.getId()).andReturn(new PropertyId(mp.getIdentifier().toString(),
+            OpencastConstants.WORKFLOW_PROPERTIES_NAMESPACE, "testproperty")).anyTimes();
+    EasyMock.expect(property.getValue()).andReturn(new Value.StringValue("foo")).once();
+
+    EasyMock.replay(property);
+
     // Add a listener for paused workflow instances
     WorkflowStateListener pauseListener = new WorkflowStateListener(WorkflowState.PAUSED);
     service.addWorkflowListener(pauseListener);
@@ -275,6 +300,13 @@ public class HoldStateTest {
 
   @Test
   public void testMultipleHolds() throws Exception {
+
+    EasyMock.expect(property.getId()).andReturn(new PropertyId(mp.getIdentifier().toString(),
+            OpencastConstants.WORKFLOW_PROPERTIES_NAMESPACE, "testproperty")).anyTimes();
+    EasyMock.expect(property.getValue()).andReturn(new Value.StringValue("foo")).anyTimes();
+
+    EasyMock.replay(property);
+
     WorkflowStateListener pauseListener = new WorkflowStateListener(WorkflowState.PAUSED);
     service.addWorkflowListener(pauseListener);
     synchronized (pauseListener) {

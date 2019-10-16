@@ -275,14 +275,25 @@ acl:
 ]
 ```
 
-scheduling (`rrule` is optional and can be used to schedule multiple events):
+scheduling a single event:
 ```
 {
   "agent_id": "ca24",
   "start": "2018-03-27T16:00:00Z",
   "end": "2018-03-27T19:00:00Z",
   "inputs": ["default"],
-  "rrule":"FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,FR;BYHOUR=16;BYMINUTE=0"
+}
+```
+
+scheduling multiple events:
+```
+{
+  "agent_id": "ca24",
+  "start": "2019-05-20T16:00:00Z",
+  "end": "2019-06-10T19:00:00Z",
+  "inputs": ["default"],
+  "rrule":"FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,FR;BYHOUR=16;BYMINUTE=0",
+  "duration":1080000;
 }
 ```
 
@@ -758,6 +769,10 @@ __Response__
 
 Returns an event's list of publications.
 
+Query String Parameter     |Type                         | Description
+:--------------------------|:----------------------------|:-----------
+`sign`                     | [`boolean`](types.md#basic) | Whether public distribution urls should be signed
+
 __Response__
 
 `200 (OK)`: The list of publications is returned.<br/>
@@ -783,6 +798,10 @@ __Response__
 ### GET /api/events/{event_id}/publications/{publication_id}
 
 Returns a single publication.
+
+Query String Parameter     |Type                         | Description
+:--------------------------|:----------------------------|:-----------
+`sign`                     | [`boolean`](types.md#basic) | Whether public distribution urls should be signed
 
 __Response__
 
@@ -886,9 +905,10 @@ Available since API version 1.1.0.
 
 Update the scheduling information of the event with id `{event_id}`.
 
-Form Parameters             |Type            | Description
-:---------------------------|:---------------|:----------------------------
-`scheduling`                | `string`       | The scheduling information.
+Form Parameters             |Type            | Description                              | Default | Version
+:---------------------------|:---------------|:-----------------------------------------|:--------|:-------
+`scheduling`                | `string`       | The scheduling information.              | <span class="required">Required</span>| 1.1.0
+`allowConflict`             | `boolean`      | Allow conflicts when updating scheduling.| false   | 1.2.0
 
 __Sample__
 
@@ -919,3 +939,13 @@ In case of a conflict:
   }
 ]
 ```
+
+`allowConflict` allows the schedule to be updated without checking for conflicts.
+To allow conflicts (`true`) the call **MUST** be made with a user that has an _Administrative Role_.
+
+If not handled properly this will likely cause two or more events to be
+scheduled on a particular capture agent at the same time, which will then
+cause a capture failure for all but one of the events.
+
+The person making this call and allowing conflicts to exist, will bear the
+responsibility of resolving the conflicts that might result.

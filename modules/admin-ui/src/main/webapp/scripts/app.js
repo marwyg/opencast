@@ -41,9 +41,11 @@ angular.module('adminNg', [
   'adminNg.services.language',
   'adminNg.services.table',
   'adminNg.services.modal',
+  'adminNg.components',
   'adminNg.directives',
   'mgo-angular-wizard',
-  'opencast.directives'
+  'opencast.directives',
+  'chart.js'
 ]).config(['$routeProvider', function ($routeProvider) {
   var firstCharToUpper = function (string) {
     return string.charAt(0).toUpperCase() + string.slice(1);
@@ -127,4 +129,17 @@ angular.module('adminNg', [
   $rootScope.toURL = function ( path ) {
     location.href = path;
   };
-}]);
+}])
+.directive('escKey', function() {
+  return function(scope, element, attrs) {
+    element.bind('keydown keypress', function(event) {
+      var keyCode = event.which || event.keyCode;
+      if (keyCode === 27) {
+        scope.$apply(function() {
+          scope.$eval(attrs.escKey);
+        });
+        event.preventDefault();
+      }
+    });
+  };
+});

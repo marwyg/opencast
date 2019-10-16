@@ -47,7 +47,6 @@ import com.entwinemedia.fn.Fx;
 import com.entwinemedia.fn.Unit;
 import com.entwinemedia.fn.data.Opt;
 
-import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -139,12 +138,11 @@ public class AssetManagerMessageReceiverImpl extends BaseMessageReceiverImpl<Ass
     // Remove the archived entry from the search index
     try {
       getSearchIndex().deleteAssets(organization, user, eventId);
-      logger.debug("Archived media package {} removed from admin ui search index", eventId);
+      logger.debug("Archived media package {} removed from {} search index", eventId, getSearchIndex().getIndexName());
     } catch (NotFoundException e) {
       logger.warn("Archived media package {} not found for deletion", eventId);
     } catch (SearchIndexException e) {
-      logger.error("Error deleting the archived entry {} from the search index: {}", eventId,
-              ExceptionUtils.getStackTrace(e));
+      logger.error("Error deleting the archived entry {} from the search index:", eventId, e);
     }
   }
 

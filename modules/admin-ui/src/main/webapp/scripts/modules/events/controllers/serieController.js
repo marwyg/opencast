@@ -24,8 +24,9 @@
 angular.module('adminNg.controllers')
 .controller('SerieCtrl', ['$scope', 'SeriesMetadataResource', 'SeriesEventsResource', 'SeriesAccessResource',
   'SeriesThemeResource', 'ResourcesListResource', 'UserRolesResource', 'Notifications', 'AuthService',
+  'StatisticsReusable', '$http',
   function ($scope, SeriesMetadataResource, SeriesEventsResource, SeriesAccessResource, SeriesThemeResource,
-    ResourcesListResource, UserRolesResource, Notifications, AuthService) {
+    ResourcesListResource, UserRolesResource, Notifications, AuthService, StatisticsReusable, $http) {
 
     var roleSlice = 100;
     var roleOffset = 0;
@@ -84,7 +85,7 @@ angular.module('adminNg.controllers')
         mode = 'optional'; // defaults to optional
       }
       $scope.updateMode = mode;
-    });
+    }).catch(angular.noop);
 
     $scope.changeBaseAcl = function () {
       $scope.baseAcl = SeriesAccessResource.getManagedAcl({id: this.baseAclId}, function () {
@@ -138,13 +139,24 @@ angular.module('adminNg.controllers')
           $scope.roles[role.name] = role.value;
         });
         roleOffset = Object.keys($scope.roles).length;
-      }).finally(function () {
+      }).catch(
+        angular.noop
+      ).finally(function () {
         loading = false;
       });
       return rolePromise;
     };
 
     fetchChildResources = function (id) {
+      var previousProviderData;
+      if ($scope.statReusable !== null) {
+        previousProviderData = $scope.statReusable.statProviderData;
+      }
+      $scope.statReusable = StatisticsReusable.createReusableStatistics(
+        'series',
+        id,
+        previousProviderData);
+
       $scope.metadata = SeriesMetadataResource.get({ id: id }, function (metadata) {
         var seriesCatalogIndex, keepGoing = true;
         angular.forEach(metadata.entries, function (catalog, index) {
@@ -168,6 +180,45 @@ angular.module('adminNg.controllers')
         if (angular.isDefined(seriesCatalogIndex)) {
           metadata.entries.splice(seriesCatalogIndex, 1);
         }
+
+        $http.get('/admin-ng/feeds/feeds')
+        .then( function(response) {
+          $scope.feedContent = response.data;
+          for (var i = 0; i < $scope.seriesCatalog.fields.length; i++) {
+            if($scope.seriesCatalog.fields[i].id === 'identifier'){
+              $scope.uid = $scope.seriesCatalog.fields[i].value;
+            }
+          }
+          for (var j = 0; j < response.data.length; j++) {
+            if(response.data[j].name === 'Series') {
+              var pattern = response.data[j].identifier.split('/series')[0] + response.data[j].pattern;
+              var uidLink = pattern.split('<series_id>')[0] + $scope.uid;
+              var typeLink = uidLink.split('<type>');
+              var versionLink = typeLink[1].split('<version>');
+              $scope.feedsLinks = [
+                {
+                  type: 'atom',
+                  version: '0.3',
+                  link: typeLink[0] + 'atom' + versionLink[0] + '0.3' + versionLink[1]
+                },
+                {
+                  type: 'atom',
+                  version: '1.0',
+                  link: typeLink[0] + 'atom' + versionLink[0] + '1.0' + versionLink[1]
+                },
+                {
+                  type: 'rss',
+                  version: '2.0',
+                  link: typeLink[0] + 'rss' + versionLink[0] + '2.0' + versionLink[1]
+                }
+              ];
+            }
+          }
+
+        }).catch(function(error) {
+          $scope.feedContent = null;
+        });
+
       });
 
       $scope.roles = {};
@@ -238,6 +289,8 @@ angular.module('adminNg.controllers')
       $scope.getMoreRoles();
     };
 
+    $scope.statReusable = null;
+
     // Generate proxy function for the save metadata function based on the given flavor
     // Do not generate it
     $scope.getSaveFunction = function (flavor) {
@@ -271,6 +324,11 @@ angular.module('adminNg.controllers')
     $scope.$on('change', function (event, id) {
       fetchChildResources(id);
     });
+
+    $scope.statisticsCsvFileName = function (statsTitle) {
+      var sanitizedStatsTitle = statsTitle.replace(/[^0-9a-z]/gi, '_').toLowerCase();
+      return 'export_series_' + $scope.resourceId + '_' + sanitizedStatsTitle + '.csv';
+    };
 
     $scope.metadataSave = function (id, callback, catalog) {
       catalog.attributeToSend = id;

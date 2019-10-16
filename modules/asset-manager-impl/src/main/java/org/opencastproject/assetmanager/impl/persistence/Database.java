@@ -53,6 +53,7 @@ import org.slf4j.LoggerFactory;
 
 import java.sql.DatabaseMetaData;
 import java.util.Date;
+import java.util.List;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 import javax.inject.Provider;
@@ -329,9 +330,10 @@ public class Database implements EntityPaths {
    *
    * @param mediaPackageId
    *          Media package identifier
+   * @return Number of deleted rows
    */
-  public void deleteProperties(final String mediaPackageId) {
-    PropertyDto.delete(entityManagerFactory.createEntityManager(), mediaPackageId);
+  public int deleteProperties(final String mediaPackageId) {
+    return PropertyDto.delete(entityManagerFactory.createEntityManager(), mediaPackageId);
   }
 
   /**
@@ -341,13 +343,13 @@ public class Database implements EntityPaths {
    *          Media package identifier
    * @param namespace
    *          A namespace prefix to use for deletion
+   * @return Number of deleted rows
    */
-  public void deleteProperties(final String mediaPackageId, final String namespace) {
+  public int deleteProperties(final String mediaPackageId, final String namespace) {
     if (StringUtils.isBlank(namespace)) {
-      PropertyDto.delete(entityManagerFactory.createEntityManager(), mediaPackageId);
-    } else {
-      PropertyDto.delete(entityManagerFactory.createEntityManager(), mediaPackageId, namespace);
+      return PropertyDto.delete(entityManagerFactory.createEntityManager(), mediaPackageId);
     }
+    return PropertyDto.delete(entityManagerFactory.createEntityManager(), mediaPackageId, namespace);
   }
 
   /**
@@ -359,6 +361,32 @@ public class Database implements EntityPaths {
    */
   public boolean snapshotExists(final String mediaPackageId) {
     return SnapshotDto.exists(entityManagerFactory.createEntityManager(), mediaPackageId);
+  }
+
+  /**
+   * Check if any snapshot with the given media package identifier exists.
+   *
+   * @param mediaPackageId
+   *          The media package identifier to check for
+   * @param organization
+   *          The organization to filter for
+   * @return If a snapshot exists for the given media package
+   */
+  public boolean snapshotExists(final String mediaPackageId, final String organization) {
+    return SnapshotDto.exists(entityManagerFactory.createEntityManager(), mediaPackageId, organization);
+  }
+
+  /**
+   * Select all properties for a specific media package.
+   *
+   * @param mediaPackageId
+   *          Media package identifier to check for
+   * @param namespace
+   *          Namespace to limit the search to
+   * @return List of properties
+   */
+  public List<Property> selectProperties(final String mediaPackageId, final String namespace) {
+    return PropertyDto.select(entityManagerFactory.createEntityManager(), mediaPackageId, namespace);
   }
 
   public Opt<AssetDtos.Full> findAssetByChecksumAndStore(final String checksum, final String storeId) {

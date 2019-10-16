@@ -69,7 +69,7 @@ import javax.ws.rs.core.Response;
                 + "not working and is either restarting or has failed",
                 "A status code 500 means a general failure has occurred which is not recoverable and was not anticipated. In "
                         + "other words, there is a bug! You should file an error report with your server logs from the time when the "
-                        + "error occurred: <a href=\"https://opencast.jira.com\">Opencast Issue Tracker</a>" })
+                        + "error occurred: <a href=\"https://github.com/opencast/opencast/issues\">Opencast Issue Tracker</a>" })
 public class GroupRoleEndpoint {
 
   /** The logger */
@@ -111,7 +111,7 @@ public class GroupRoleEndpoint {
       JaxbGroupList list = jpaGroupRoleProvider.getGroupsAsXml(limit, offset);
       return Response.ok().entity(list).type(type).build();
     } catch (Exception e) {
-      logger.info(e.getMessage(), e);
+      logger.info("Unable to get groups", e);
       return Response.serverError().entity(buildUnexpectedErrorMessage(e)).build();
     }
   }
@@ -153,7 +153,7 @@ public class GroupRoleEndpoint {
     try {
       jpaGroupRoleProvider.createGroup(name, description, roles, users);
     } catch (IllegalArgumentException e) {
-      logger.warn(e.getMessage());
+      logger.warn("Unable to create group {}: {}", name, e.getMessage());
       return Response.status(SC_BAD_REQUEST).build();
     } catch (UnauthorizedException e) {
       return Response.status(SC_FORBIDDEN).build();
@@ -180,7 +180,7 @@ public class GroupRoleEndpoint {
     try {
       jpaGroupRoleProvider.updateGroup(groupId, name, description, roles, users);
     } catch (IllegalArgumentException e) {
-      logger.warn(e.getMessage());
+      logger.warn("Unable to update group id {}: {}", groupId, e.getMessage());
       return Response.status(SC_BAD_REQUEST).build();
     } catch (UnauthorizedException ex) {
       return Response.status(SC_FORBIDDEN).build();

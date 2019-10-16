@@ -21,6 +21,7 @@
 
 package org.opencastproject.workflow.impl;
 
+import static org.easymock.EasyMock.createNiceMock;
 import static org.junit.Assert.assertEquals;
 import static org.opencastproject.workflow.impl.SecurityServiceStub.DEFAULT_ORG_ADMIN;
 
@@ -78,6 +79,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -179,6 +181,17 @@ public class CountWorkflowsTest {
     serviceRegistry = new ServiceRegistryInMemoryImpl(service, securityService, userDirectoryService,
             organizationDirectoryService, EasyMock.createNiceMock(IncidentService.class));
 
+    {
+      final AssetManager assetManager = createNiceMock(AssetManager.class);
+      EasyMock.expect(assetManager.selectProperties(EasyMock.anyString(), EasyMock.anyString()))
+              .andReturn(Collections.emptyList())
+              .anyTimes();
+      EasyMock.expect(assetManager.getMediaPackage(EasyMock.anyString())).andReturn(Opt.none()).anyTimes();
+      EasyMock.expect(assetManager.snapshotExists(EasyMock.anyString())).andReturn(true).anyTimes();
+      EasyMock.replay(assetManager);
+      service.setAssetManager(assetManager);
+    }
+
     AssetManager assetManager = EasyMock.createNiceMock(AssetManager.class);
     Version version = EasyMock.createNiceMock(Version.class);
     Snapshot snapshot = EasyMock.createNiceMock(Snapshot.class);
@@ -224,10 +237,8 @@ public class CountWorkflowsTest {
     is = CountWorkflowsTest.class.getResourceAsStream("/workflow-definition-holdstate.xml");
     def = WorkflowParser.parseWorkflowDefinition(is);
     IOUtils.closeQuietly(is);
-    service.registerWorkflowDefinition(def);
 
     serviceRegistry.registerService(service);
-
   }
 
   @After

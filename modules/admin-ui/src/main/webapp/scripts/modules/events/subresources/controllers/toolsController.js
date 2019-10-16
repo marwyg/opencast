@@ -28,8 +28,6 @@ angular.module('adminNg.controllers')
     var thumbnailErrorMessageId = null;
     var trackErrorMessageId = null;
 
-    var LOCAL_CONTEXT = 'video-tools';
-
     $scope.navigateTo = function (path) {
       $location.path(path).replace();
     };
@@ -79,12 +77,12 @@ angular.module('adminNg.controllers')
             $scope.$root.originalDefaultThumbnailPosition = response.thumbnail.position;
           }
           if (thumbnailErrorMessageId !== null) {
-            Notifications.remove(thumbnailErrorMessageId, LOCAL_CONTEXT);
+            Notifications.remove(thumbnailErrorMessageId);
             thumbnailErrorMessageId = null;
           }
           $scope.video.thumbnail.loading = false;
         }, function() {
-          thumbnailErrorMessageId = Notifications.add('error', 'THUMBNAIL_CHANGE_FAILED', LOCAL_CONTEXT);
+          thumbnailErrorMessageId = Notifications.add('error', 'THUMBNAIL_CHANGE_FAILED');
           $scope.video.thumbnail.loading = false;
         });
     };
@@ -169,16 +167,19 @@ angular.module('adminNg.controllers')
     $scope.player = {};
     $scope.video  = ToolsResource.get({ id: $scope.id, tool: 'editor' });
 
-    $scope.activeRequest = false;
+    $scope.activeSubmission = false;
 
     $scope.submit = function () {
-      $scope.activeRequest = true;
+      $scope.activeSubmission = true;
       $scope.video.thumbnail.loading = $scope.video.thumbnail && $scope.video.thumbnail.type &&
               ($scope.video.thumbnail.type === 'DEFAULT');
+      // Remember $scope.video.workflow as $scope.video.$save will potentially overwrite this value
+      var closeVideoEditor = $scope.video.workflow;
       $scope.video.$save({ id: $scope.id, tool: $scope.tab }, function (response) {
-        $scope.activeRequest = false;
-        if ($scope.video.workflow) {
+        $scope.activeSubmission = false;
+        if (closeVideoEditor) {
           Notifications.add('success', 'VIDEO_CUT_PROCESSING');
+          Storage.put('pagination', $scope.resource, 'resume', true);
           $location.url('/events/' + $scope.resource);
         } else {
           Notifications.add('success', 'VIDEO_CUT_SAVED');
@@ -197,9 +198,9 @@ angular.module('adminNg.controllers')
           trackErrorMessageId = null;
         }
       }, function () {
-        $scope.activeRequest = false;
+        $scope.activeSubmission = false;
         $scope.video.thumbnail.loading = false;
-        trackErrorMessageId = Notifications.add('error', 'VIDEO_CUT_NOT_SAVED', LOCAL_CONTEXT);
+        trackErrorMessageId = Notifications.add('error', 'VIDEO_CUT_NOT_SAVED');
       });
     };
 
@@ -207,9 +208,5 @@ angular.module('adminNg.controllers')
       Storage.put('pagination', $scope.resource, 'resume', true);
       $location.url('/events/' + $scope.resource);
     };
-
-    $scope.$on('$destroy', function () {
-      Notifications.removeAll(LOCAL_CONTEXT);
-    });
   }
 ]);

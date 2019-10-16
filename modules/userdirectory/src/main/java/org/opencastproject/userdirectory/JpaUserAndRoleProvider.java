@@ -185,7 +185,6 @@ public class JpaUserAndRoleProvider implements UserProvider, RoleProvider {
   public Iterator<Role> findRoles(String query, Role.Target target, int offset, int limit) {
     if (query == null)
       throw new IllegalArgumentException("Query must be set");
-    String orgId = securityService.getOrganization().getId();
 
     // This provider persists roles but is not authoritative for any roles, so return an empty set
     return new ArrayList<Role>().iterator();
@@ -212,22 +211,6 @@ public class JpaUserAndRoleProvider implements UserProvider, RoleProvider {
     String orgId = securityService.getOrganization().getId();
     List<JpaUser> users = UserDirectoryPersistenceUtil.findUsers(orgId, 0, 0, emf);
     return Monadics.mlist(users).map(addProviderName).iterator();
-  }
-
-  /**
-   * {@inheritDoc}
-   *
-   * @see org.opencastproject.security.api.RoleDirectoryService#getRoles()
-   */
-  @Override
-  public Iterator<Role> getRoles() {
-    return getRolesAsList().iterator();
-  }
-
-  public List<Role> getRolesAsList() {
-    String orgId = securityService.getOrganization().getId();
-    List<JpaRole> rolesIterator = UserDirectoryPersistenceUtil.findRoles(orgId, 0, 0, emf);
-    return new ArrayList<Role>(rolesIterator);
   }
 
   /**

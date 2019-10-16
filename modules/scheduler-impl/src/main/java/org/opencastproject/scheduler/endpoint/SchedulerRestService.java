@@ -27,7 +27,6 @@ import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
 import static javax.servlet.http.HttpServletResponse.SC_UNAUTHORIZED;
 import static org.apache.commons.lang3.exception.ExceptionUtils.getMessage;
-import static org.apache.commons.lang3.exception.ExceptionUtils.getStackTrace;
 import static org.opencastproject.capture.CaptureParameters.AGENT_REGISTRATION_TYPE;
 import static org.opencastproject.capture.CaptureParameters.AGENT_REGISTRATION_TYPE_ADHOC;
 import static org.opencastproject.metadata.dublincore.DublinCore.PROPERTY_CREATED;
@@ -150,7 +149,7 @@ import javax.ws.rs.core.Response.Status;
                 + "not working and is either restarting or has failed",
         "A status code 500 means a general failure has occurred which is not recoverable and was not anticipated. In "
                 + "other words, there is a bug! You should file an error report with your server logs from the time when the "
-                + "error occurred: <a href=\"https://opencast.jira.com\">Opencast Issue Tracker</a>" })
+                + "error occurred: <a href=\"https://github.com/opencast/opencast/issues\">Opencast Issue Tracker</a>" })
 public class SchedulerRestService {
 
   private static final Logger logger = LoggerFactory.getLogger(SchedulerRestService.class);
@@ -561,7 +560,7 @@ public class SchedulerRestService {
         response.header(HttpHeaders.ETAG, lastModified);
       return response.build();
     } catch (Exception e) {
-      logger.error("Unable to get calendar for capture agent '{}': {}", captureAgentId, getStackTrace(e));
+      logger.error("Unable to get calendar for capture agent '{}':", captureAgentId, e);
       throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
     }
   }
@@ -1054,8 +1053,8 @@ public class SchedulerRestService {
     } catch (UnauthorizedException e) {
       throw e;
     } catch (Exception e) {
-      logger.error("Unable to find conflicting events for {}, {}, {}, {}, {}: {}",
-              device, rrule, startDate, endDate, duration, getStackTrace(e));
+      logger.error("Unable to find conflicting events for {}, {}, {}, {}, {}:",
+              device, rrule, startDate, endDate, duration, e);
       throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
     }
   }
@@ -1086,8 +1085,6 @@ public class SchedulerRestService {
     if (StringUtils.isBlank(timezone)) {
       timezone = DateTimeZone.getDefault().toString();
     }
-    Date start = new DateTime(startDate).toDateTime(DateTimeZone.forID(timezone)).toDate();
-    Date end = new DateTime(endDate).toDateTime(DateTimeZone.forID(timezone)).toDate();
 
     try {
       List<MediaPackage> events = getConflictingEvents(device, rrule, startDate, endDate, duration, timezone);
@@ -1105,8 +1102,8 @@ public class SchedulerRestService {
     } catch (UnauthorizedException e) {
       throw e;
     } catch (Exception e) {
-      logger.error("Unable to find conflicting events for {}, {}, {}, {}, {}: {}",
-              device, rrule, startDate, endDate, duration, getStackTrace(e));
+      logger.error("Unable to find conflicting events for {}, {}, {}, {}, {}",
+              device, rrule, startDate, endDate, duration, e);
       throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
     }
   }
@@ -1131,7 +1128,7 @@ public class SchedulerRestService {
         return Response.status(Response.Status.BAD_REQUEST).build();
       }
     } catch (SchedulerException e) {
-      logger.debug("Unable to set recording state of {}: {}", id, getStackTrace(e));
+      logger.debug("Unable to set recording state of {}:", id, e);
       return Response.serverError().build();
     }
   }
@@ -1149,7 +1146,7 @@ public class SchedulerRestService {
       return RestUtil.R
               .ok(obj(p("id", rec.getID()), p("state", rec.getState()), p("lastHeardFrom", rec.getLastCheckinTime())));
     } catch (SchedulerException e) {
-      logger.debug("Unable to get recording state of {}: {}", id, getStackTrace(e));
+      logger.debug("Unable to get recording state of {}:", id, e);
       return Response.serverError().build();
     }
   }
@@ -1169,7 +1166,7 @@ public class SchedulerRestService {
       service.removeRecording(id);
       return Response.ok(id + " removed").build();
     } catch (SchedulerException e) {
-      logger.debug("Unable to remove recording with id '{}': {}", id, getStackTrace(e));
+      logger.debug("Unable to remove recording with id '{}':", id, e);
       return Response.serverError().build();
     }
   }
@@ -1188,7 +1185,7 @@ public class SchedulerRestService {
       }
       return RestUtil.R.ok(arr(update).toJson());
     } catch (SchedulerException e) {
-      logger.debug("Unable to get all recordings: {}", getStackTrace(e));
+      logger.debug("Unable to get all recordings:", e);
       throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
     }
   }

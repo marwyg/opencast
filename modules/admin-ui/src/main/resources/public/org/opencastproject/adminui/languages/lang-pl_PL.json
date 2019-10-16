@@ -57,7 +57,6 @@
             "GROUP": "Następująca grupa zostanie usunięta",
             "USER": "Następujący użytkownik zostanie usunięty",
             "THEME": "Następujący motyw zostanie usunięty",
-            "EMAIL": "Następujący szablon wiadomości e-mail zostanie usunięty",
             "LOCATION": "Następująca lokalizacja zostanie usunięta"
          },
          "NAME": "Imię"
@@ -66,7 +65,8 @@
          "CONFIRMATION": "Potwierdzenie"
       },
       "WARNINGS": {
-         "SERIES_HAS_EVENTS": "Ta seria zawiera wydarzenia. Usunięcie tej serii nie spowoduje ich usunięcia."
+         "SERIES_HAS_EVENTS": "Ta seria zawiera wydarzenia. Usunięcie tej serii nie spowoduje ich usunięcia.",
+         "EVENT_WILL_BE_GONE": "If you continue, the event will be irrevocably gone."
       },
       "ERRORS": {
          "SERIES_HAS_EVENTS": "Nie można usunąć tej serii, ponieważ nadal zawiera wydarzenia."
@@ -124,23 +124,16 @@
       "SERIES_NOT_UPDATED": "Nie udało się zapisać serii",
       "SERIES_NOT_UPDATED_ID": "Nie można zapisać serii {{ id }}",
       "SERIES_NOT_UPDATED_ALL": "Żadna seria nie została zapisana",
-      "EVENTS_DELETED": "Wydarzenie zostało usunięte",
-      "EVENTS_NOT_DELETED": "Wydarzenie/wydarzenia nie mogły być usunięte",
-      "EVENTS_NOT_DELETED_NOT_AUTHORIZED": "Wydarzenia nie można usunąć, ponieważ nie masz uprawnień, aby to zrobić.",
+      "EVENT_DELETED": "The event has been deleted.",
+      "EVENT_WILL_BE_DELETED": "The event is being deleted",
+      "EVENTS_DELETED": "The events are being deleted.",
+      "EVENTS_NOT_DELETED": "The event(s) could not be deleted.",
+      "EVENTS_NOT_DELETED_NOT_AUTHORIZED": "The event(s) could not be deleted, because you don't have the permission to do so.",
       "SERIES_DELETED": "Seria została skasowana",
       "SERIES_NOT_DELETED": "Seria nie mogła zostać usunięta",
       "LOCATION_DELETED": "Lokalizacja została usunięta",
       "LOCATION_NOT_DELETED": "Nie udało się usunąć lokalizacji",
       "LOCATION_NOT_DELETED_NOT_AUTHORIZED": "Nie można usunąć lokalizacji, ponieważ nie masz uprawnień, aby to zrobić.",
-      "EMAIL_TEMPLATE_CREATED": "Szablon został utworzony",
-      "EMAIL_TEMPLATE_NOT_CREATED": "Nie można utworzyć szablonu",
-      "EMAIL_TEMPLATE_SAVED": "Szablon został zapisany",
-      "EMAIL_TEMPLATE_NOT_SAVED": "Szablon nie może zostać zapisany",
-      "EMAIL_TEMPLATE_DELETED": "Szablon został usunięty",
-      "EMAIL_TEMPLATE_NOT_DELETED": "Szablon nie może być usunięty",
-      "EMAIL_TEMPLATE_NAME_TAKEN": "Ta nazwa jest już w użyciu",
-      "EMAIL_SENT": "Wiadomość została wysłana",
-      "EMAIL_NOT_SENT": "Wysłanie wiadomości nie powiodło się",
       "CONFLICT_DETECTED": "Konflikt w harmonogramie: nowe wydarzenie pokrywa się z już zaplanowanym. Proszę zmienić salę lub termin wydarzenia.",
       "CONFLICT_BULK_DETECTED": "Konflikt w harmonogramie: zmiana wydarzenia powoduje konflikty. Prosimy o zmianę lokalizacji, rozpoczęcia lub czasu trwania.",
       "CONFLICT_ALREADY_ENDED": "Błąd w harmonogramie: Wydarzenie się już zakończyło.",
@@ -153,11 +146,6 @@
       "SERIES_ACL_LOCKED": "Edytowanie zasad dostępu jest niedozwolone, jeśli wykonywane są operacje dotyczące zdarzenia, które jest częścią serii",
       "SERIES_ACL_MISSING_READWRITE_ROLE": "Zasada dostępu musi zawierać przynajmniej jedną rolę użytkownika z uprawnieniem do zapisu lub odczytu.",
       "EVENT_ACL_MISSING_READWRITE_ROLE": "Zasada dostępu musi zawierać przynajmniej jedną rolę użytkownika z uprawnieniem do zapisu lub odczytu.",
-      "EVENT_PARTICIPATION_STATUS_UPDATE_SUCCESS": "Status wykluczenia został z powodzeniem zaktualizowany.",
-      "EVENT_PARTICIPATION_STATUS_UPDATE_ERROR": "Błąd podczas aktualizacji statusu wykluczenia wydarzenia.",
-      "EVENT_PARTICIPATION_STATUS_READONLY": "Status uczestnictwa nie może być zaktualizowany w momencie w którym data rozpoczęcia już minęła.",
-      "SERIES_PARTICIPATION_STATUS_UPDATE_SUCCESS": "Status wykluczenia został z powodzeniem zaktualizowany.",
-      "SERIES_PARTICIPATION_STATUS_UPDATE_ERROR": "Błąd podczas aktualizacji statusu wykluczenia serii.",
       "THEME_NAME_ALREADY_TAKEN": "Ta nazwa jest już w użyciu",
       "THEME_NAME_EMPTY": "Nazwa nie może być pusta",
       "BUMPER_UPLOAD_ERROR": "Wystąpił błąd podczas przesyłania multimediów",
@@ -174,8 +162,8 @@
       "THEME_NOT_DELETED": "Nie można usunąć motywu",
       "TASK_CREATED": "Zadanie zostało utworzone",
       "TASK_NOT_CREATED": "Nie można utworzyć zadania",
-      "VIDEO_CUT_NOT_SAVED": "Nie udało się zapisać informacji edycji",
-      "VIDEO_CUT_SAVED": "Informacje o edycji zostały zapisane",
+      "VIDEO_CUT_NOT_SAVED": "The changes could not be saved",
+      "VIDEO_CUT_SAVED": "The changes have been saved",
       "VIDEO_CUT_PROCESSING": "Nagranie jest przetwarzane…",
       "THUMBNAIL_CHANGE_FAILED": "Nie udało się zmienić obrazka.",
       "VIDEO_SOURCE_TRACKS_INVALID": "Nie wybrałeś filmu ze ścieżkami, które można przetwarzać",
@@ -186,13 +174,6 @@
    },
    "BULK_ACTIONS": {
       "CAPTION": "Działania",
-      "SEND_MESSAGE": "Wyślij wiadomość",
-      "WARNING": "UWAGA",
-      "EDIT_STATUS": {
-         "CAPTION": "Edytowanie Stanu",
-         "READY_FOR_RECORDING": "Gotowy do nagrywania",
-         "OPTED_OUT": "Wykluczone"
-      },
       "DELETE": {
          "SERIES": {
             "CAPTION": "Usuń",
@@ -202,22 +183,7 @@
          "EVENTS": {
             "CAPTION": "Usuń",
             "DELETE_EVENTS": "Usuń wydarzenia",
-            "PUBLISHED": {
-               "NONE": "Żadne z wybranych wydarzeń nie musi być wycofywane z publikacji przed usunięciem.",
-               "WARNING": "Poniższe wydarzenia nie mogą zostać skasowane, ponieważ zostały one opublikowane i po ich usunięciu nie możnabyłoby wycofać ich z publikacji. Najpierw musisz wycofać wydarzenia z kanałów publikacji, następnie będzie można je skasować."
-            },
-            "RETRACT_EVENTS": "Wycofaj wydarzenia",
-            "SELECT_RETRACT_TASK": "Wybierz Zadanie Wycofania",
-            "SUMMARY": {
-               "EVENTS_DELETED": "Wydarzenia do usunięcia",
-               "EVENTS_RETRACTED": "Wydarzenia do wycofania",
-               "RETRACT_WORKFLOW": "Przepływ Wycofujący Zdarzenie"
-            },
-            "UNAUTHORIZED": "Nie masz uprawnień do skasowania podświetlonych zdarzeń. Proszę odznacz je, żeby kontynuować.",
-            "UNPUBLISHED": {
-               "NONE": "Żadne z wybranych zdarzeń, nie może zostać usunięte bez pozostawienia niepowiązanych plików."
-            },
-            "BUTTON": "Usuń"
+            "UNAUTHORIZED": "Nie masz uprawnień do skasowania podświetlonych zdarzeń. Proszę odznacz je, żeby kontynuować."
          }
       },
       "DELETE_EVENTS_WARNING_LINE1": "Po usunięciu nagrania, wszelkie związane z nim informacje, filmy i pliki zostaną bezpowrotnie utracone.",
@@ -291,7 +257,7 @@
       "NEXT_STEP": "Następne",
       "BACK": "Poprzednie",
       "CREATE": "Utwórz",
-      "RETRACT": "Wycofaj",
+      "DELETE": "Usuń",
       "UPDATE": "Aktualizuj",
       "DURATION": {
          "HOURS": "Godzin",
@@ -326,16 +292,12 @@
       },
       "CONFIGURATION": {
          "TITLE": "Konfiguracja"
+      },
+      "STATISTICS": {
+         "TITLE": "Statistics"
       }
    },
    "EVENTS": {
-      "RETRACT": {
-         "CAPTION": "Wycofaj wydarzenie",
-         "ID": "Identyfikator",
-         "SELECT_TASK": "Wybierz Zadanie",
-         "SUMMARY": "Podsumowanie",
-         "WARNING": "Wydarzenie zostało opublikowane w przynajmniej jednym kanale. Żeby je usunąć należy wycofać je z publikacji."
-      },
       "LICENSE": {
          "ALLRIGHTS": "Wszelkie prawa zastrzeżone",
          "CCBY": "CC BY",
@@ -348,28 +310,6 @@
          "BSD": "BSD",
          "CCND": "CCND",
          "GPL": "GPL"
-      },
-      "SEND_MESSAGE": {
-         "CAPTION": "Wyślij wiadomość",
-         "TABS": {
-            "RECIPIENTS": "Odbiorcy",
-            "MESSAGE": "Wiadomość",
-            "SUMMARY": "Podsumowanie"
-         },
-         "RECIPIENTS": {
-            "AUDIT_TRAIL_CAPTION": "Dodaj do śladu rewizyjnego",
-            "AUDIT_TRAIL_DESCRIPTION": "Zaznacz, aby dodać wiadomość do śladu rewizyjnego",
-            "AUDIT_TRAIL_LABEL": ""
-         },
-         "MESSAGE": {
-            "EMAIL_TEMPLATE": "Wybierz szablon wiadomości e-mail",
-            "SUBJECT": "Temat",
-            "MESSAGE": "Wiadomość",
-            "INCLUDE_SIGNATURE": "Załącz mój podpis w wiadomości"
-         },
-         "SUMMARY": {
-            "MESSAGE_SUMMARY": "Podsumowanie"
-         }
       },
       "EVENTS": {
          "NEW": {
@@ -500,7 +440,6 @@
          "ADD_EVENT": "Dodaj wydarzenie",
          "TABLE": {
             "CAPTION": "Wydarzenia",
-            "CREATORS": "Twórcy",
             "TITLE": "Tytuł",
             "PRESENTERS": "Prezenter(rzy)",
             "SERIES": "Serie",
@@ -515,14 +454,13 @@
             "LAST": "Ostatnie",
             "NEXT": "Następne",
             "MANAGED_ACL": "Zasady dostępu",
-            "SCHEDULING_STATUS": "Status",
             "WORKFLOW_STATE": "Postęp",
-            "REVIEW_STATUS": "Status przeglądu",
             "PREVIOUS": "Poprzednie",
             "NOCONTENT": "Brak danych",
             "PUBLISHED": "Opublikowano",
             "WEEKDAY": "Dzień tygodnia",
             "TOOLTIP": {
+               "ASSETS": "Open asset details",
                "START": "Filtr do tej daty rozpoczęcia",
                "SERIES": "Filtr dla tej serii",
                "STATUS": "Filtr dla statusu tego wydarzenia",
@@ -536,13 +474,8 @@
                "PRESENTER": "Filter for this presenter"
             }
          },
-         "SCHEDULING_STATUS": {
-            "READY_FOR_RECORDING": "Gotowy do nagrywania",
-            "OPTED_OUT": "Wykluczone"
-         },
          "STATUS": {
             "SCHEDULED": "Zaplanowane",
-            "OPTEDOUT": "Wykluczone",
             "RECORDING": "Nagrywanie",
             "UPLOADING": "Przesyłanie",
             "INGESTING": "Wprowadzanie",
@@ -554,6 +487,15 @@
             "PROCESSING_FAILURE": "Błąd przetwarzania",
             "PROCESSING_CANCELED": "Przetwarzanie anulowane"
          },
+         "STATE_MAPPING": {
+            "RETRACTING": "Retracting",
+            "DELETING": "Deleting",
+            "DUPLICATING": "Duplicating",
+            "PUBLISHING": "Publishing",
+            "IMPORTING": "Importing",
+            "REPUBLISHING_METADATA": "Republishing metadata",
+            "UPDATING_PREVIEWS": "Updating previews"
+         },
          "DETAILS": {
             "HEADER": "Szczegóły wydarzenia - {{resourceId}}",
             "TABS": {
@@ -564,16 +506,14 @@
                "SCHEDULING": "Harmonogram",
                "WORKFLOWS": "Przepływy pracy",
                "ACCESS": "Zasady dostępu",
-               "COMMENTS": "Komentarze"
+               "COMMENTS": "Komentarze",
+               "STATISTICS": "Statistics"
             },
             "PUBLICATIONS": {
                "CAPTION": "Publikacje",
                "NO_PUBLICATIONS_AVAILABLE": "To wydarzenie nie ma publikacji",
                "PUBLICATION_DESCRIPTION": "To wydarzenie zostało opublikowane w następujących kanałach:",
                "LIVE_EVENT_NOT_IN_PROGRESS": "To wydarzenie nie jest obecnie w toku",
-               "SCHEDULING_STATUS": "Status",
-               "READY_FOR_RECORDING": "Gotowy do nagrywania",
-               "OPTED_OUT": "Wykluczone",
                "CUSTOM": "Niestandardowe",
                "ENGAGE": "Engage",
                "ENGAGE_LIVE": "Transmisja na żywo",
@@ -809,6 +749,9 @@
                   "PROCESSING_FAILURE": "Błąd przetwarzania"
                }
             },
+            "STATISTICS": {
+               "CAPTION": "Statistics"
+            },
             "METADATA": {
                "CAPTION": "Szczegóły wydarzenia",
                "TITLE": "Tytuł",
@@ -840,20 +783,6 @@
             },
             "SCHEDULING": {
                "CAPTION": "Stanu uczestnictwa",
-               "REVIEW_STATUS": {
-                  "CAPTION": "Status przeglądu"
-               },
-               "OPTEDOUT": {
-                  "CAPTION": "Status Wykluczonych",
-                  "READY": "Gotowy do nagrywania",
-                  "OPTEDOUT": "Wykluczone"
-               },
-               "MESSAGES": {
-                  "CAPTION": "Wiadomości",
-                  "CREATION_DATE": "Data utworzenia",
-                  "SENDER": "Nadawca",
-                  "SUBJECT": "Temat"
-               },
                "PLACEHOLDER": {
                   "PRESENTERS": "Prezenter(rzy)"
                }
@@ -1027,7 +956,7 @@
             "CAPTION": "Seria",
             "TITLE": "Seria",
             "HAS_EVENTS": "Zawiera wydarzenia",
-            "CREATORS": "Organizator(rzy)",
+            "ORGANIZERS": "Organizator(rzy)",
             "CONTRIBUTORS": "Współpracownik(cy)",
             "CREATED": "Utworzono",
             "MANAGED_ACL": "Zasady dostępu",
@@ -1044,10 +973,10 @@
             "TABS": {
                "METADATA": "Metadane",
                "EXTENDED_METADATA": "Metadane II",
-               "PARTICIPATION": "Uczestnictwo",
                "EVENTS": "Wydarzenia",
                "PERMISSIONS": "Zasady dostępu",
-               "THEME": "Motyw"
+               "THEME": "Motyw",
+               "STATISTICS": "Statistics"
             },
             "ACCESS": {
                "CAPTION": "Zasady dostępu",
@@ -1089,24 +1018,6 @@
                "LANGUAGE": "Język",
                "LICENSE": "Licencja",
                "DESCRIPTION": "Opis"
-            },
-            "PARTICIPATION": {
-               "CAPTION": "Wzór stanu uczestnictwa",
-               "WARNING_TEMPLATE": "Status uczestnictwa obowiązujący dla serii będzie domyślną wartością dla wydarzeń do niej przypisanych.",
-               "REVIEW_STATUS": {
-                  "CAPTION": "Status przeglądu"
-               },
-               "OPTEDOUT": {
-                  "CAPTION": "Status Wykluczonych",
-                  "READY": "Gotowy do nagrywania",
-                  "OPTEDOUT": "Wykluczone"
-               },
-               "MESSAGES": {
-                  "CAPTION": "Wiadomości",
-                  "CREATION_DATE": "Data utworzenia",
-                  "SENDER": "Nadawca",
-                  "SUBJECT": "Temat"
-               }
             },
             "EVENTS": {
                "TITLE": "Tytuł",
@@ -1418,34 +1329,7 @@
          "ADD_THEME": "Dodaj motyw"
       },
       "NAVIGATION": {
-         "MAIL_TEMPLATES": "Szablony e-maili",
-         "MAIL_SERVERS": "Ustawienia poczty e-mail",
          "THEMES": "Motywy"
-      },
-      "EMAIL_TEMPLATES": {
-         "TABLE": {
-            "CAPTION": "Szablony e-maili",
-            "NAME": "Nazwa",
-            "CREATOR": "Twórca",
-            "CREATED": "Utworzono",
-            "ACTION": "Działania"
-         },
-         "DETAILS": {
-            "NEWCAPTION": "Utwórz szablon",
-            "EDITCAPTION": "Edytuj szablon",
-            "TABS": {
-               "MESSAGE": "Wiadomość",
-               "SUMMARY": "Podsumowanie"
-            },
-            "MESSAGE": {
-               "NAME": "Nazwa",
-               "SUBJECT": "Temat",
-               "MESSAGE": "Wiadomość"
-            },
-            "SUMMARY": {
-               "MESSAGE_SUMMARY": "Podsumowanie wiadomości"
-            }
-         }
       },
       "THEMES": {
          "TABLE": {
@@ -1541,24 +1425,16 @@
       "JOBS": {
          "TABLE": {
             "ID": "Identyfikator zadania",
-            "ACTION": "Działania",
             "CAPTION": "Zadania",
             "CREATED": "Utworzono",
             "CREATOR": "Twórca",
             "HOST_NAME": "Nazwa hosta",
+            "NODE_NAME": "Node name",
             "OPERATION": "Operacje",
             "STARTED": "Rozpoczęte",
             "STATUS": "Status",
             "SUBMITTED": "Wysłano",
             "TYPE": "Typ"
-         },
-         "DETAILS": {
-            "HEADER": "Szczegóły zadania {{resourceId}}",
-            "TABS": {
-               "GENERAL": "Ogólne",
-               "OPERATIONS": "Operacje",
-               "INCIDENTS": "Problemy"
-            }
          },
          "STATUS": {
             "QUEUED": "W kolejce",
@@ -1579,6 +1455,7 @@
             "CAPTION": "Serwery",
             "STATUS": "Status",
             "HOST_NAME": "Nazwa hosta",
+            "NODE_NAME": "Node name",
             "CORES": "Rdzenie",
             "COMPLETED": "Zadania wykonane",
             "RUNNING": "Uruchomione zadania",
@@ -1586,7 +1463,6 @@
             "MEAN_RUN_TIME": "Średni czas trwania",
             "MEAN_QUEUE_TIME": "Średni czas w kolejce",
             "MAINTENANCE": "Obsługa",
-            "ACTION": "Działania",
             "MAINTENANCE_OFF": "Tryb konserwacji",
             "MAINTENANCE_ON": "Opuścić tryb konserwacji"
          }
@@ -1597,6 +1473,7 @@
             "STATUS": "Status",
             "NAME": "Nazwa usługi",
             "HOST_NAME": "Nazwa hosta",
+            "NODE_NAME": "Node name",
             "COMPLETED": "Zadania wykonane",
             "RUNNING": "Uruchomione zadania",
             "QUEUED": "Zadania w kolejce",
@@ -1642,18 +1519,24 @@
       },
       "ACTIONS": {
          "SPLIT": "Podziel",
-         "CUT": "Wytnij",
-         "REPLAY_SEGMENT": "Powtórzenie segmentu",
-         "REPLAY_END_OF_SEGMENT": "Koniec segmentu",
-         "REPLAY_SEGMENT_WITH_PREROLL": "Sprawdzenie przejścia",
+         "SPLIT_TOOLTIP": "Split segment at the current cursor position.",
+         "CUT": "Hide/Show",
+         "CUT_TOOLTIP": "Hide or show the selected part of the video.",
+         "REPLAY_SEGMENT": "Play Start of Segment",
+         "REPLAY_SEGMENT_TOOLTIP": "Play the current segment from the beginning.",
+         "REPLAY_END_OF_SEGMENT": "Play End of Segment",
+         "REPLAY_END_OF_SEGMENT_TOOLTIP": "Play a few seconds at the end of the current segment.",
+         "REPLAY_SEGMENT_WITH_PREROLL": "Play Transition",
+         "REPLAY_SEGMENT_WITH_PREROLL_TOOLTIP": "Play a few seconds containing the end of the previous and the beginning of the next segment.",
          "UNDO": "Cofnij",
          "REDO": "Wykonaj ponownie",
-         "CLEAR_SEGMENTS": "Wyczyść segmenty",
-         "CLEAR_SELECTED_SEGMENT": "Wyczyść zaznaczony segment"
+         "CLEAR_SEGMENTS": "Clear All Segments",
+         "CLEAR_SEGMENTS_TOOLTIP": "Clear all segments, leaving one big segment."
       },
       "SEGMENTS": {
          "REMOVE_SEGMENT": "Usuń segment",
-         "USE_SEGMENT": "Użyj tego segmentu",
+         "SHOW_SEGMENT": "Show this Segment",
+         "HIDE_SEGMENT": "Hide this Segment",
          "START": "Start",
          "END": "Koniec"
       },
@@ -1816,9 +1699,6 @@
          "LOCATION": {
             "LABEL": "Lokalizacja"
          },
-         "OPTEDOUT": {
-            "LABEL": "Wykluczone"
-         },
          "PERIOD": {
             "LABEL": "Okres"
          },
@@ -1830,12 +1710,6 @@
          },
          "PROGRESS": {
             "LABEL": "Postęp"
-         },
-         "REVIEW_STATUS": {
-            "LABEL": "Status przeglądu",
-            "CONFIRMED": "Potwierdzone",
-            "UNCONFIRMED": "Niepotwierdzone",
-            "UNSENT": "Niewysłane"
          },
          "SERIES": {
             "LABEL": "Seria"
@@ -1880,6 +1754,9 @@
          "HOSTNAME": {
             "LABEL": "Nazwa hosta"
          },
+         "NODE_NAME": {
+            "LABEL": "Node name"
+         },
          "STATUS": {
             "LABEL": "Status",
             "PAUSED": "Zatrzymane",
@@ -1921,6 +1798,9 @@
          "HOSTNAME": {
             "LABEL": "Nazwa hosta"
          },
+         "NODE_NAME": {
+            "LABEL": "Node name"
+         },
          "STATUS": {
             "LABEL": "Status",
             "MAINTENANCE": "Obsługa",
@@ -1934,6 +1814,9 @@
          },
          "HOSTNAME": {
             "LABEL": "Nazwa hosta"
+         },
+         "NODE_NAME": {
+            "LABEL": "Node name"
          },
          "NAME": {
             "LABEL": "Imię"
@@ -2079,6 +1962,29 @@
    "EDITABLE": {
       "MULTI": {
          "PLACEHOLDER": "To insert multiple values press Enter in between"
+      }
+   },
+   "STATISTICS": {
+      "NOT_AVAILABLE": "Statistics cannot be displayed at the moment. Please try again later.",
+      "UNSUPPORTED_TYPE": "Sorry, Opencast cannot render this type of statistical data.",
+      "FROM": "Od",
+      "TO": "To",
+      "TOTAL": "Total",
+      "GRANULARITY": "Granularity",
+      "NAVIGATION": {
+         "ORGANIZATION": "Organisation"
+      },
+      "TITLE": {
+         "RANDOM": "Random Data",
+         "VIEWS_SUM": "Total Number of Views",
+         "VIEWS_AVG": "Average Number of Views",
+         "PUBLISHEDHOURS": "Published Hours of Video"
+      },
+      "DESCRIPTION": {
+         "RANDOM": "This displays random data as a showcase. You can disable this chart by deleting the corresponding statistics provider's json definition from etc/providers",
+         "VIEWS_SUM": "This displays the total number of views per time unit.",
+         "VIEWS_AVG": "This displays the mean number of daily views per time unit.",
+         "PUBLISHEDHOURS": "This displays the published hours of video"
       }
    }
 }

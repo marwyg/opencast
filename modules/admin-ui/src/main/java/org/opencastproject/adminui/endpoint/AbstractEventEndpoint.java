@@ -31,11 +31,13 @@ import static com.entwinemedia.fn.data.json.Jsons.f;
 import static com.entwinemedia.fn.data.json.Jsons.obj;
 import static com.entwinemedia.fn.data.json.Jsons.v;
 import static java.lang.String.format;
+import static javax.servlet.http.HttpServletResponse.SC_ACCEPTED;
 import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 import static javax.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
 import static javax.servlet.http.HttpServletResponse.SC_NO_CONTENT;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
+import static javax.servlet.http.HttpServletResponse.SC_SERVICE_UNAVAILABLE;
 import static javax.servlet.http.HttpServletResponse.SC_UNAUTHORIZED;
 import static org.apache.commons.lang3.StringUtils.trimToNull;
 import static org.opencastproject.index.service.util.RestUtils.conflictJson;
@@ -76,11 +78,11 @@ import org.opencastproject.index.service.api.IndexService.Source;
 import org.opencastproject.index.service.catalog.adapter.MetadataList;
 import org.opencastproject.index.service.catalog.adapter.MetadataList.Locked;
 import org.opencastproject.index.service.exception.IndexServiceException;
+import org.opencastproject.index.service.exception.UnsupportedAssetException;
 import org.opencastproject.index.service.impl.index.event.Event;
 import org.opencastproject.index.service.impl.index.event.EventIndexSchema;
 import org.opencastproject.index.service.impl.index.event.EventSearchQuery;
 import org.opencastproject.index.service.impl.index.event.EventUtils;
-import org.opencastproject.index.service.resources.list.provider.EventCommentsListProvider;
 import org.opencastproject.index.service.resources.list.provider.EventsListProvider.Comments;
 import org.opencastproject.index.service.resources.list.query.EventListQuery;
 import org.opencastproject.index.service.util.AccessInformationUtil;
@@ -116,6 +118,8 @@ import org.opencastproject.security.api.AccessControlList;
 import org.opencastproject.security.api.AccessControlParser;
 import org.opencastproject.security.api.AclScope;
 import org.opencastproject.security.api.AuthorizationService;
+import org.opencastproject.security.api.Organization;
+import org.opencastproject.security.api.Permissions;
 import org.opencastproject.security.api.SecurityService;
 import org.opencastproject.security.api.UnauthorizedException;
 import org.opencastproject.security.api.User;
@@ -272,6 +276,8 @@ public abstract class AbstractEventEndpoint {
 
   public abstract Boolean getOnlySeriesWithWriteAccessEventModal();
 
+  public abstract Boolean getOnlyEventsWithWriteAccessEventsTab();
+
   /** Default server URL */
   protected String serverUrl = "http://localhost:8080";
 
@@ -381,24 +387,43 @@ public abstract class AbstractEventEndpoint {
   @RestQuery(name = "deleteevent", description = "Delete a single event.", returnDescription = "Ok if the event has been deleted.", pathParameters = {
           @RestParameter(name = "eventId", isRequired = true, description = "The id of the event to delete.", type = STRING), }, reponses = {
                   @RestResponse(responseCode = SC_OK, description = "The event has been deleted."),
+                  @RestResponse(responseCode = SC_ACCEPTED, description = "The event will be retracted and deleted afterwards."),
                   @RestResponse(responseCode = HttpServletResponse.SC_UNAUTHORIZED, description = "If the current user is not authorized to perform this action") })
   public Response deleteEvent(@PathParam("eventId") String id) throws UnauthorizedException, SearchIndexException {
-    try {
-      checkAgentAccessForEvent(id);
-      if (!getIndexService().removeEvent(id))
-        return Response.serverError().build();
-    } catch (NotFoundException e) {
-      // If we couldn't find any trace of the event in the underlying database(s), we can get rid of it
-      // entirely in the index.
+    final Opt<Event> event = checkAgentAccessForEvent(id);
+    if (event.isNone()) {
+      return RestUtil.R.notFound(id);
+    }
+    final Runnable doOnNotFound = () -> {
       try {
         getIndex().delete(Event.DOCUMENT_TYPE,id.concat(getSecurityService().getOrganization().getId()));
-      } catch (SearchIndexException e1) {
-        logger.error("error removing event {}: {}",id,e1);
-        return Response.serverError().build();
+      } catch (SearchIndexException e) {
+        logger.error("error removing event {}: {}", id, e);
       }
+    };
+    final IndexService.EventRemovalResult result;
+    try {
+      result = getIndexService().removeEvent(event.get(), doOnNotFound, getAdminUIConfiguration().getRetractWorkflowId());
+    } catch (WorkflowDatabaseException e) {
+      logger.error("Workflow database is not reachable. This may be a temporary problem.");
+      return RestUtil.R.serverError();
+    } catch (NotFoundException e) {
+      logger.error("Configured retract workflow not found. Check your configuration.");
+      return RestUtil.R.serverError();
     }
-
-    return Response.ok().build();
+    switch (result) {
+      case SUCCESS:
+        return Response.ok().build();
+      case RETRACTING:
+        return Response.accepted().build();
+      case GENERAL_FAILURE:
+        return Response.serverError().build();
+      case NOT_FOUND:
+        doOnNotFound.run();
+        return RestUtil.R.notFound(id);
+      default:
+        throw new RuntimeException("Unknown EventRemovalResult type: " + result.name());
+    }
   }
 
   @POST
@@ -428,31 +453,51 @@ public abstract class AbstractEventEndpoint {
     BulkOperationResult result = new BulkOperationResult();
 
     for (Object eventIdObject : eventIdsJsonArray) {
-      String eventId = eventIdObject.toString();
-      try {
-        checkAgentAccessForEvent(eventId);
-        if (!getIndexService().removeEvent(eventId)) {
-          result.addServerError(eventId);
-        } else {
-          result.addOk(eventId);
+      final String eventId = eventIdObject.toString();
+      final Runnable doOnNotFound = () -> {
+        try {
+          getIndex().delete(Event.DOCUMENT_TYPE,eventId.concat(getSecurityService().getOrganization().getId()));
+        } catch (SearchIndexException e) {
+          logger.error("error removing event {}: {}", eventId, e);
         }
-      } catch (NotFoundException e) {
-        result.addNotFound(eventId);
+      };
+      try {
+        final Opt<Event> event = checkAgentAccessForEvent(eventId);
+        if (event.isSome()) {
+          final IndexService.EventRemovalResult  currentResult = getIndexService().removeEvent(event.get(), doOnNotFound,
+            getAdminUIConfiguration().getRetractWorkflowId()
+          );
+          switch (currentResult) {
+            case SUCCESS:
+              result.addOk(eventId);
+              break;
+            case RETRACTING:
+              result.addAccepted(eventId);
+              break;
+            case GENERAL_FAILURE:
+              result.addServerError(eventId);
+              break;
+            case NOT_FOUND:
+              doOnNotFound.run();
+              result.addNotFound(eventId);
+              break;
+            default:
+              throw new RuntimeException("Unknown EventRemovalResult type: " + currentResult.name());
+          }
+        } else {
+          result.addNotFound(eventId);
+        }
       } catch (UnauthorizedException e) {
         result.addUnauthorized(eventId);
+      } catch (WorkflowDatabaseException e) {
+        logger.error("Workflow database is not reachable. This may be a temporary problem.");
+        return RestUtil.R.serverError();
+      } catch (NotFoundException e) {
+        logger.error("Configured retract workflow not found. Check your configuration.");
+        return RestUtil.R.serverError();
       }
     }
     return Response.ok(result.toJson()).build();
-  }
-
-  @GET
-  @Path("{eventId}/hasSnapshots.json")
-  @Produces(MediaType.APPLICATION_JSON)
-  @RestQuery(name = "hassnapshots", description = "Returns a JSON object containing a boolean indicating if snapshots exist for this event", returnDescription = "A JSON object", pathParameters = {
-    @RestParameter(name = "eventId", description = "The event id", isRequired = true, type = RestParameter.Type.STRING) }, reponses = {
-    @RestResponse(description = "A JSON object containing a property \"hasSnapshots\"", responseCode = HttpServletResponse.SC_OK) })
-  public Response hasEventSnapshots(@PathParam("eventId") String id) throws Exception {
-    return okJson(obj(f("hasSnapshots",this.getIndexService().hasSnapshots(id))));
   }
 
   @GET
@@ -1103,29 +1148,36 @@ public abstract class AbstractEventEndpoint {
     Opt<Event> optEvent = getIndexService().getEvent(eventId, getIndex());
     if (optEvent.isNone())
       return notFound("Cannot find an event with id '%s'.", eventId);
+    Event event = optEvent.get();
 
     MetadataList metadataList = new MetadataList();
     List<EventCatalogUIAdapter> catalogUIAdapters = getIndexService().getEventCatalogUIAdapters();
     catalogUIAdapters.remove(getIndexService().getCommonEventCatalogUIAdapter());
-    MediaPackage mediaPackage = getIndexService().getEventMediapackage(optEvent.get());
+    MediaPackage mediaPackage;
+    try {
+      mediaPackage = getIndexService().getEventMediapackage(event);
+    } catch (IndexServiceException e) {
+      if (e.getCause() instanceof NotFoundException) {
+        return notFound("Cannot find data for event %s", eventId);
+      } else if (e.getCause() instanceof UnauthorizedException) {
+        return Response.status(Status.FORBIDDEN).entity("Not authorized to access " + eventId).build();
+      }
+      logger.error("Internal error when trying to access metadata for " + eventId, e);
+      return serverError();
+    }
     for (EventCatalogUIAdapter catalogUIAdapter : catalogUIAdapters) {
       metadataList.add(catalogUIAdapter, catalogUIAdapter.getFields(mediaPackage));
     }
 
-    MetadataCollection mc = EventUtils.getEventMetadata(optEvent.get(), getIndexService().getCommonEventCatalogUIAdapter());
+    MetadataCollection metadataCollection = EventUtils.getEventMetadata(event, getIndexService().getCommonEventCatalogUIAdapter());
     if (getOnlySeriesWithWriteAccessEventModal()) {
-      MetadataField<?> series = mc.getOutputFields().get(DublinCore.PROPERTY_IS_PART_OF.getLocalName());
-      mc.removeField(series);
-      Map<String, String> seriesAccessEventModal = getSeriesService().getUserSeriesByAccess(true);
-      Opt<Map<String, String>> map = Opt.some(seriesAccessEventModal);
-      MetadataField<String> newSeries = new MetadataField(series);
-      newSeries.setCollection(map);
-      newSeries.setValue(optEvent.get().getSeriesId());
-      mc.addField(newSeries);
+      MetadataField<?> seriesField = metadataCollection.getOutputFields().get(DublinCore.PROPERTY_IS_PART_OF.getLocalName());
+      Map<String, String> seriesWithWriteAccess = getSeriesService().getUserSeriesByAccess(true);
+      seriesField.setCollection(Opt.some(seriesWithWriteAccess));
     }
-    metadataList.add(getIndexService().getCommonEventCatalogUIAdapter(), mc);
+    metadataList.add(getIndexService().getCommonEventCatalogUIAdapter(), metadataCollection);
 
-    final String wfState = optEvent.get().getWorkflowState();
+    final String wfState = event.getWorkflowState();
     if (wfState != null && WorkflowUtil.isActive(WorkflowInstance.WorkflowState.valueOf(wfState)))
       metadataList.setLocked(Locked.WORKFLOW_RUNNING);
 
@@ -1331,7 +1383,18 @@ public abstract class AbstractEventEndpoint {
     Opt<Event> optEvent = getIndexService().getEvent(id, getIndex());
     if (optEvent.isNone())
       return notFound("Cannot find an event with id '%s'.", id);
-    MediaPackage mp = getIndexService().getEventMediapackage(optEvent.get());
+    MediaPackage mp;
+    try {
+      mp = getIndexService().getEventMediapackage(optEvent.get());
+    } catch (IndexServiceException e) {
+      if (e.getCause() instanceof NotFoundException) {
+        return notFound("Cannot find data for event %s", id);
+      } else if (e.getCause() instanceof UnauthorizedException) {
+        return Response.status(Status.FORBIDDEN).entity("Not authorized to access " + id).build();
+      }
+      logger.error("Internal error when trying to access metadata for " + id, e);
+      return serverError();
+    }
     int attachments = mp.getAttachments().length;
     int catalogs = mp.getCatalogs().length;
     int media = mp.getTracks().length;
@@ -1793,7 +1856,7 @@ public abstract class AbstractEventEndpoint {
       return Response.status(Status.CREATED).entity(result).build();
     }  catch (NotFoundException e) {
       return notFound("Cannot find an event with id '%s'.", eventId);
-    } catch (IllegalArgumentException e) {
+    } catch (IllegalArgumentException | UnsupportedAssetException e) {
       return RestUtil.R.badRequest(e.getMessage());
     } catch (Exception e) {
       return RestUtil.R.serverError();
@@ -2022,8 +2085,11 @@ public abstract class AbstractEventEndpoint {
   public Response createNewEvent(@Context HttpServletRequest request) {
     try {
       String result = getIndexService().createEvent(request);
+      if (StringUtils.isEmpty(result)) {
+        return RestUtil.R.badRequest("The date range provided did not include any events");
+      }
       return Response.status(Status.CREATED).entity(result).build();
-    } catch (IllegalArgumentException e) {
+    } catch (IllegalArgumentException | UnsupportedAssetException e) {
       return RestUtil.R.badRequest(e.getMessage());
     } catch (Exception e) {
       return RestUtil.R.serverError();
@@ -2047,8 +2113,12 @@ public abstract class AbstractEventEndpoint {
     Option<Integer> optOffset = Option.option(offset);
     Option<String> optSort = Option.option(trimToNull(sort));
     ArrayList<JValue> eventsList = new ArrayList<>();
-    EventSearchQuery query = new EventSearchQuery(getSecurityService().getOrganization().getId(),
-            getSecurityService().getUser());
+    final Organization organization = getSecurityService().getOrganization();
+    final User user = getSecurityService().getUser();
+    if (organization == null || user == null) {
+      return Response.status(SC_SERVICE_UNAVAILABLE).build();
+    }
+    EventSearchQuery query = new EventSearchQuery(organization.getId(), user);
 
     // If the limit is set to 0, this is not taken into account
     if (optLimit.isSome() && limit == 0) {
@@ -2095,8 +2165,8 @@ public abstract class AbstractEventEndpoint {
       if (EventListQuery.FILTER_STARTDATE_NAME.equals(name)) {
         try {
           Tuple<Date, Date> fromAndToCreationRange = RestUtils.getFromAndToDateRange(filters.get(name));
-          query.withTechnicalStartFrom(fromAndToCreationRange.getA());
-          query.withTechnicalStartTo(fromAndToCreationRange.getB());
+          query.withStartFrom(fromAndToCreationRange.getA());
+          query.withStartTo(fromAndToCreationRange.getB());
         } catch (IllegalArgumentException e) {
           return RestUtil.R.badRequest(e.getMessage());
         }
@@ -2145,15 +2215,11 @@ public abstract class AbstractEventEndpoint {
       }
     }
 
-    // TODO: Add the comment resolution filter to the query
-    EventCommentsListProvider.RESOLUTION resolution = null;
-    if (StringUtils.isNotBlank(resolutionFilter)) {
-      try {
-        resolution = EventCommentsListProvider.RESOLUTION.valueOf(resolutionFilter);
-      } catch (Exception e) {
-        logger.warn("Unable to parse comment resolution filter {}", resolutionFilter);
-        return Response.status(Status.BAD_REQUEST).build();
-      }
+    // We search for write actions
+    if (getOnlyEventsWithWriteAccessEventsTab()) {
+      query.withoutActions();
+      query.withAction(Permissions.Action.WRITE);
+      query.withAction(Permissions.Action.READ);
     }
 
     if (optLimit.isSome())
@@ -2218,6 +2284,7 @@ public abstract class AbstractEventEndpoint {
     fields.add(f("managedAcl", v(event.getManagedAcl(), BLANK)));
     fields.add(f("workflow_state", v(event.getWorkflowState(), BLANK)));
     fields.add(f("event_status", v(event.getEventStatus())));
+    fields.add(f("displayable_status", v(event.getDisplayableStatus(getWorkflowService().getWorkflowStateMappings()))));
     fields.add(f("source", v(getIndexService().getEventSource(event).toString())));
     fields.add(f("has_comments", v(event.hasComments())));
     fields.add(f("has_open_comments", v(event.hasOpenComments())));
@@ -2512,12 +2579,13 @@ public abstract class AbstractEventEndpoint {
     }
   }
 
-  private void checkAgentAccessForEvent(final String eventId) throws UnauthorizedException, SearchIndexException {
+  private Opt<Event> checkAgentAccessForEvent(final String eventId) throws UnauthorizedException, SearchIndexException {
     final Opt<Event> event = getIndexService().getEvent(eventId, getIndex());
     if (event.isNone() || !event.get().getEventStatus().contains("SCHEDULE")) {
-      return;
+      return event;
     }
     SecurityUtil.checkAgentAccess(getSecurityService(), event.get().getAgentId());
+    return event;
   }
 
   private void checkAgentAccessForAgent(final String agentId) throws UnauthorizedException {
