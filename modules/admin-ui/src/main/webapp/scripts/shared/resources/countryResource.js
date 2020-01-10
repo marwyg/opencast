@@ -1031,5 +1031,6 @@ angular.module('adminNg.resources')
       }
     ];
   };
+
   return countries;
 });

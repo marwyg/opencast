@@ -105,7 +105,7 @@ angular.module('adminNg.controllers')
     }
 
     // TODO: This would open the modal on EVERY start-up
-    // ResourceModal.show('registration-modal');
+    ResourceModal.show('registration-modal');
 
     HotkeysService.activateUniversalHotkey('general.event_view', function (event) {
       event.preventDefault();
