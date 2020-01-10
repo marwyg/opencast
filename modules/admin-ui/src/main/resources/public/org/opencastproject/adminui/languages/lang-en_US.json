@@ -393,6 +393,10 @@
            "TEXT_LEADING_TO_PATH": "You can change your data at ",
            "TEXT_LEADING_AFTER_PATH": "at any time."
          },
+        "ERROR": {
+          "HEADER": "Error",
+          "TEXT": "An error occurred while processing your request."
+        },
          "DELETE_SUBMIT_STATE": {
           "TEXT": "Are you sure you want to delete Profile?"
          }

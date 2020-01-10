@@ -136,6 +136,23 @@
     </div>
   </div>
 
+  <div ng-show="state == 'error'" class="modal-content"
+       style="display: block;">
+    <div class="modal-body">
+      <div class="registration-header">
+        <h2 translate="ADOPTER_REGISTRATION.MODAL.ERROR.HEADER"></h2>
+      </div>
+      <div>
+        <div class="row">
+          <p>
+            <span translate="ADOPTER_REGISTRATION.MODAL.ERROR.TEXT">
+            </span>
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <form name="adopterRegistrationForm">
   <div ng-show="state == 'form'" class="modal-content"
     style="display: block;">

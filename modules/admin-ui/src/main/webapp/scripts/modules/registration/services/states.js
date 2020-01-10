@@ -120,6 +120,18 @@ angular.module('adminNg.services')
               'submitButtonText': null
             }
           },
+          'error': {
+            'nextState': {
+              0: 'close'
+            },
+            'buttons': {
+              'submit': false,
+              'back': false,
+              'skip': false,
+              'close': true,
+              'submitButtonText': null
+            }
+          },
           'skip': {
             'nextState': {
               0: 'close',

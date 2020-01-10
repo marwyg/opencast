@@ -21,6 +21,7 @@
 'use strict';
 
 angular.module('adminNg.resources')
-.factory('AdopterRegistrationResource', ['$resource', 'JsHelper', function ($resource, JsHelper) {
-  return $resource('/admin-ng/adopter/:id');
+.factory('AdopterRegistrationResource', ['$resource', function ($resource) {
+  //return $resource('http://localhost:5000/api/1.0/adopter');
+  return $resource('');
 }]);
