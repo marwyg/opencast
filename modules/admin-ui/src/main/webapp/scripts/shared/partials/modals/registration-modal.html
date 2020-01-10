@@ -78,9 +78,11 @@
               <!-- at any time. -->
             </span>
             <br />
+            <!--
             <span translate="ADOPTER_REGISTRATION.MODAL.SKIP_STATE.TEXT_DEACTIVATE_INFO">
-              <!-- Also you can deactivate this  automatic registration request there.  -->
+              Also you can deactivate this  automatic registration request there.
             </span>
+            -->
           </p>
         </div>
       </div>
@@ -163,7 +165,7 @@
           <div class="row">
             <div class="col">
             <div class="form-group">
-              <input type="text" id="adopter_organisation" ng-model="adopter.organisation_name" class="form-control" required>
+              <input type="text" id="adopter_organisation" ng-model="adopter.organisationName" class="form-control" required>
               <label
 	              class="form-control-placeholder"
 	              for="adopter_organisation"
@@ -172,7 +174,7 @@
             </div>
             <div class="col">
             <div class="form-group">
-              <input type="text" id="adopter_department" ng-model="adopter.department_name" class="form-control">
+              <input type="text" id="adopter_department" ng-model="adopter.departmentName" class="form-control">
               <label
                 class="form-control-placeholder"
                 for="adopter_department"
@@ -200,7 +202,7 @@
             <div class="col">
             <div class="form-group-pair">
               <div class="form-group">
-                <input type="text" id="adopter_postalcode" ng-model="adopter.postal_code" class="form-control" required>
+                <input type="text" id="adopter_postalcode" ng-model="adopter.postalCode" class="form-control" required>
                 <label
                   class="form-control-placeholder"
                   for="adopter_postalcode"
@@ -221,33 +223,19 @@
          <legend translate="ADOPTER_REGISTRATION.MODAL.FORM_STATE.CONTACT_INFO"></legend>
           <div class="row">
             <div class="col">
-            <div class="form-group-pair">
+            <!--<div class="form-group-pair"> -->
               <div class="form-group">
-                <select id="adopter_gender"
-                        class="form-control"
-                        ng-model="adopter.gender">
-
-                  <option value=""></option>
-                  <option value="male" translate="ADOPTER_REGISTRATION.MODAL.FORM_STATE.GENDER_MALE"></option>
-                  <option value="female" translate="ADOPTER_REGISTRATION.MODAL.FORM_STATE.GENDER_FEMALE"></option>
-                </select>
-                <label
-                  class="form-control-placeholder"
-                  for="adopter_gender"
-                  translate="ADOPTER_REGISTRATION.MODAL.FORM_STATE.GENDER"></label>
-              </div>
-              <div class="form-group">
-                <input type="text" id="adopter_firstname" ng-model="adopter.first_name" class="form-control">
+                <input type="text" id="adopter_firstname" ng-model="adopter.firstName" class="form-control">
                 <label
                   class="form-control-placeholder"
                   for="adopter_firstname"
                   translate="ADOPTER_REGISTRATION.MODAL.FORM_STATE.FIRST_NAME"></label>
               </div>
-            </div>
+            <!-- </div> -->
             </div>
             <div class="col">
             <div class="form-group">
-              <input type="text" id="adopter_lastname" ng-model="adopter.last_name" class="form-control">
+              <input type="text" id="adopter_lastname" ng-model="adopter.lastName" class="form-control">
               <label
                 class="form-control-placeholder"
                 for="adopter_lastname"
@@ -266,28 +254,30 @@
             </div>
             </div>
             <div class="col">
-            <div class="form-group-pair">
+            <!-- <div class="form-group-pair"> -->
               <div class="form-group">
-                <input type="text" id="adopter_streetnumber" ng-model="adopter.street_no" class="form-control">
+                <input type="text" id="adopter_streetnumber" ng-model="adopter.streetNo" class="form-control">
                 <label
                   class="form-control-placeholder"
                   for="adopter_streetnumber"
                   translate="ADOPTER_REGISTRATION.MODAL.FORM_STATE.NUMBER"></label>
               </div>
-              <div class="form-group">
-                <input type="text" id="adopter_addressadd" ng-model="adopter.adress_additional" class="form-control">
+              <!--<div class="form-group">
+                <input type="text" id="adopter_addressadd" ng-model="adopter.adressAdditional" class="form-control">
                 <label
                   class="form-control-placeholder"
                   for="adopter_addressadd"
                   translate="ADOPTER_REGISTRATION.MODAL.FORM_STATE.ADDITIONAL_ADRESS_INFO"></label>
               </div>
+
             </div>
+            -->
             </div>
           </div>
           <div class="row">
             <div class="col">
             <div class="form-group">
-              <input id="adopter_emailadr" type="email" ng-model-options="{ debounce: 300 }" ng-model="adopter.mail" class="form-control">
+              <input id="adopter_emailadr" type="email" ng-model-options="{ debounce: 300 }" ng-model="adopter.email" class="form-control">
               <label
 	              class="form-control-placeholder"
 	              for="adopter_emailadr"
@@ -298,7 +288,7 @@
             <div class="form-group form-group-checkbox">
               <input type="checkbox"
                      id="adopter_contactme"
-                     ng-model="adopter.contact_me"
+                     ng-model="adopter.contactMe"
                      ng-model-options="{ allowInvalid: true }"
                      class="form-control">
               <label
@@ -313,7 +303,7 @@
 	              <div class="form-group form-group-checkbox">
 		              <input type="checkbox"
 		                     id="adopter_allows_statistics"
-		                     ng-model="adopter.allows_statistics"
+		                     ng-model="adopter.allowsStatistics"
 		                     ng-model-options="{ allowInvalid: true }"
 		                     class="form-control">
 		              <label
@@ -323,7 +313,7 @@
                 <div class="form-group form-group-checkbox">
                   <input type="checkbox"
                          id="adopter_allows_err_reports"
-                         ng-model="adopter.allows_error_reports"
+                         ng-model="adopter.allowsErrorReports"
                          ng-model-options="{ allowInvalid: true }"
                          class="form-control">
                   <label
@@ -333,7 +323,7 @@
                 <div class="form-group form-group-checkbox">
                   <input type="checkbox"
                          id="adopter_allows_tech_data"
-                         ng-model="adopter.allows_tech_data"
+                         ng-model="adopter.allowsTechData"
                          ng-model-options="{ allowInvalid: true }"
                          class="form-control">
                   <label
@@ -379,11 +369,16 @@
        class="danger"
        ng-click="nextState(4)"
        translate="DELETE"></a>
-    <div ng-show="states[state]['buttons']['skip']"
+
+    <a ng-show="states[state]['buttons']['skip']" class="cancel"
+       ng-click="nextState(2)" translate="ADOPTER_REGISTRATION.MODAL.SKIP"></a>
+
+    <!--<div ng-show="states[state]['buttons']['skip']"
       class="skip-registration">
       <div class="skip-registration-text">
-        <span class="link" ng-click="nextState(0)" translate="ADOPTER_REGISTRATION.MODAL.SKIP"></span>
+        <span class="link" ng-click="nextState(2)" translate="ADOPTER_REGISTRATION.MODAL.SKIP"></span>
       </div>
+      -->
     </div>
   </footer>
   </form>

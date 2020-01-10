@@ -24,8 +24,11 @@
 angular.module('adminNg.controllers')
 .controller('ApplicationCtrl', ['$scope', '$rootScope', '$location', '$window', 'AuthService', 'Notifications',
   'ResourceModal', 'VersionResource', 'HotkeysService', '$interval', 'RestServiceMonitor',
+  'AdopterRegistrationResource',
   function ($scope, $rootScope, $location, $window, AuthService, Notifications, ResourceModal,
-    VersionResource, HotkeysService, $interval, RestServiceMonitor){
+    VersionResource, HotkeysService, $interval, RestServiceMonitor, AdopterRegistrationResource){
+
+    $scope.adopter = new AdopterRegistrationResource();
 
     $scope.bodyClicked = function () {
       angular.element('[old-admin-ng-dropdown]').removeClass('active');
@@ -105,7 +108,22 @@ angular.module('adminNg.controllers')
     }
 
     // TODO: This would open the modal on EVERY start-up
-    ResourceModal.show('registration-modal');
+    AdopterRegistrationResource.get({}, function(adopter) {
+      console.log(adopter.lastModified);
+      if(adopter.lastModified == null) {
+        ResourceModal.show('registration-modal');
+        return;
+      }
+      if(adopter.organisationName === "N/A") {
+        var now = new Date();
+        var lastModified = new Date(adopter.lastModified);
+        var numberOfDaysPassed = Math.ceil((now - lastModified) / 8.64e7);
+        console.log(numberOfDaysPassed);
+        if(numberOfDaysPassed > 30) {
+          ResourceModal.show('registration-modal');
+        }
+      }
+    });
 
     HotkeysService.activateUniversalHotkey('general.event_view', function (event) {
       event.preventDefault();
