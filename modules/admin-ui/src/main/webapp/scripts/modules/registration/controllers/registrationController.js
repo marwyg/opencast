@@ -28,37 +28,22 @@ angular.module('adminNg.controllers')
   function ($scope, $timeout, Table, AdopterRegistrationStates, AdopterRegistrationResource, CountryResource,
     NewEventStates, NewEventResource, EVENT_TAB_CHANGE, Notifications, Modal, AuthService) {
 
-  $scope.state = AdopterRegistrationStates.getInitialState($scope.$parent.resourceId);
+    $scope.state = AdopterRegistrationStates.getInitialState($scope.$parent.resourceId);
 
     $scope.states = AdopterRegistrationStates.get($scope.$parent.resourceId);
     // TODO: CountryResource is in fact a service, but should be a resource. Look at countryResource.js
     //       for more information
     $scope.countries = CountryResource.getCountries();
 
+    // Filling the form fields
     $scope.adopter = new AdopterRegistrationResource();
-    // TODO: check if already registered and fetch data. Set $scope.registered
-    // TODO: You need to implement the Endpoint first
-    // AdopterRegistrationResource.get({}, function(response) {}});
-
-    //TODO: dies dient nur zu testzwecken ################################################
-    $scope.adopter.adopter_key = "C2B1262C424F905466FBCF2ACA1148CF";
-    $scope.adopter.organisation_name = "Example University";
-    $scope.adopter.department_name = "Mathematics and Computer Science";
-    $scope.adopter.gender = "male";
-    $scope.adopter.first_name = "Max";
-    $scope.adopter.last_name = "Mustermann";
-    $scope.adopter.mail = "max.mustermann@qweewqqweewq.de";
-    $scope.adopter.country = "DE";
-    $scope.adopter.postal_code = "12345";
-    $scope.adopter.city = "Exampletown";
-    $scope.adopter.street = "Main Street";
-    $scope.adopter.street_no = "1A";
-    //$scope.adopter.address_additional = null;
-    $scope.adopter.contact_me = false;
-    $scope.adopter.allows_statistics = true;
-    $scope.adopter.allows_error_reports = true;
-    $scope.adopter.allows_tech_data = true;
-    // ###################################################################################
+    AdopterRegistrationResource.get({}, function(adopter) {
+      for (var field in adopter) {
+        if (adopter.hasOwnProperty(field)) {
+          $scope.adopter[field] = adopter[field];
+        }
+      }
+    });
 
     $scope.registered = false;
 
@@ -67,25 +52,26 @@ angular.module('adminNg.controllers')
           && (inputAction == 1 || inputAction == 3)) {
         return;
       }
+
       $scope.state = $scope.states[$scope.state]['nextState'][inputAction];
 
-      if($scope.state == 'close'){
+      if($scope.state === 'close'){
         $scope.close();
-      } else if($scope.state == 'save') {
+      } else if($scope.state === 'skip') {
+        $scope.notNow();
+      } else if($scope.state === 'save') {
         $scope.save();
-      } else if($scope.state == 'update') {
+      } else if($scope.state === 'update') {
         $scope.updateProfile();
-      } else if($scope.state == 'delete') {
+      } else if($scope.state === 'delete') {
         $scope.deleteProfile();
       }
     };
 
+    // THE POST-REQUEST
     $scope.save = function () {
       if($scope.adopterRegistrationForm.$valid) {
         AuthService.getUser().$promise.then(function(authObject) {
-
-          //$scope.adopter.adopter_key = generateBase64($scope, authObject);
-
           AdopterRegistrationResource.save($scope.adopter,
             function ($response, header) {
               // success callback
@@ -96,8 +82,24 @@ angular.module('adminNg.controllers')
               console.log(error);
             });
         }).catch(angular.noop);
-
       }
+    };
+
+    $scope.notNow = function () {
+      $scope.adopter.organisationName = "N/A";
+      $scope.adopter.country = "N/A";
+      $scope.adopter.postalCode = "N/A";
+      $scope.adopter.city = "N/A";
+
+      AuthService.getUser().$promise.then(function(authObject) {
+        AdopterRegistrationResource.save($scope.adopter,
+          function ($response, header) {
+            // success callback
+          }, function(error) {
+            // error callback
+            console.log(error);
+          });
+      }).catch(angular.noop);
     };
 
     $scope.updateProfile = function () {
@@ -135,4 +137,5 @@ angular.module('adminNg.controllers')
     $scope.close = function () {
       Modal.$scope.close();
     };
+
   }]);

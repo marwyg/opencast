@@ -28,14 +28,15 @@ angular.module('adminNg.services')
         var states = {
           'information': {
             'nextState': {
-              0: 'skip',
-              1: 'form'
+              0: 'close',
+              1: 'form',
+              2: 'skip'
             },
             'buttons': {
               'submit': true,
               'back': false,
               'skip': true,
-              'close': false,
+              'close': true,
               'submitButtonText': 'ADOPTER_REGISTRATION.MODAL.CONTINUE'
             }
           },

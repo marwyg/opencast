@@ -347,8 +347,7 @@
          "SKIP_STATE": {
            "HEADER": "Maybe next time!",
            "TEXT_LEADING_TO_PATH": "If you want to register later on, you can do that at",
-           "TEXT_LEADING_AFTER_PATH": "at any time.",
-           "TEXT_DEACTIVATE_INFO": "Also you can deactivate this automatic registration request there."
+           "TEXT_LEADING_AFTER_PATH": "at any time."
          },
          "THANK_YOU_STATE": {
            "HEADER": "Thank you for your registration!",

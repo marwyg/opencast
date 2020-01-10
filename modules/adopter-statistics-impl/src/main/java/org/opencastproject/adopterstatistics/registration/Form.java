@@ -1,86 +1,110 @@
+/**
+ * Licensed to The Apereo Foundation under one or more contributor license
+ * agreements. See the NOTICE file distributed with this work for additional
+ * information regarding copyright ownership.
+ *
+ *
+ * The Apereo Foundation licenses this file to you under the Educational
+ * Community License, Version 2.0 (the "License"); you may not use this file
+ * except in compliance with the License. You may obtain a copy of the License
+ * at:
+ *
+ *   http://opensource.org/licenses/ecl2.txt
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
+ * License for the specific language governing permissions and limitations under
+ * the License.
+ *
+ */
+
 package org.opencastproject.adopterstatistics.registration;
 
-import com.google.gson.Gson;
 import org.opencastproject.security.api.Organization;
 import org.opencastproject.util.EqualsUtil;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Date;
 
 import javax.persistence.Access;
 import javax.persistence.AccessType;
-import javax.persistence.CollectionTable;
 import javax.persistence.Column;
-import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.Lob;
-import javax.persistence.MapKeyColumn;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
 
 /**
- * JPA-annotated registration form object.
+ * JPA-annotated registration form object
  */
 @Entity
 @Access(AccessType.FIELD)
-@Table(name = "statistics_registration")
+@Table(name = "oc_statistic_registration")
 @NamedQueries({
         @NamedQuery(name = "Form.findByUsername", query = "Select f FROM Form f where f.username = :username"),
-        @NamedQuery(name = "Form.findByAdopterkey", query = "Select f FROM Form f where f.adopterkey = :adopterkey") })
-public class Form {
+        @NamedQuery(name = "Form.findAllCount", query = "SELECT COUNT(f) FROM Form f")
+})
+public class Form implements IForm {
 
   @Id
-  @Column(name = "user", length = 128)
-  private String userName;
-
   @Column(name = "adopter_key")
   private String adopterKey;
 
+  @Column(name = "username")
+  private String username;
+
   @Column(name = "organisation")
-  private String organisationName = "Example University";
+  private String organisationName;
 
   @Column(name = "department")
-  private String departmentName = "Mathematics and Computer Science";
+  private String departmentName;
 
   @Column(name = "first_name")
-  private String firstName = "Max";
+  private String firstName;
 
   @Column(name = "last_name")
-  private String lastName = "Mustermann";
+  private String lastName;
 
   @Column(name = "email")
-  private String email = "max.mustermann@qweewqqweewq.de";
+  private String email;
 
   @Column(name = "country")
-  private String country = "DE";
+  private String country;
 
   @Column(name = "postal_code")
-  private String postalCode = "12345";
+  private String postalCode;
 
   @Column(name = "city")
-  private String city = "Exampletown";
+  private String city;
 
   @Column(name = "street")
-  private String street = "Main Street";
+  private String street;
 
   @Column(name = "street_no")
-  private String streetNo = "1A";
+  private String streetNo;
 
   @Column(name = "contact_me")
-  private boolean contactMe = false;
+  private boolean contactMe;
 
   @Column(name = "allows_statistics")
-  private boolean allowsStatistics = true;
+  private boolean allowsStatistics;
 
   @Column(name = "allows_error_reports")
-  private boolean allowsErrorReports = true;
+  private boolean allowsErrorReports;
 
   @Column(name = "allows_tech_data")
-  private boolean allowsTechData = true;
+  private boolean allowsTechData;
 
+  @Column(name = "created", nullable = false)
+  @Temporal(TemporalType.TIMESTAMP)
+  private Date dateCreated;
+
+  @Column(name = "last_modified", nullable = false)
+  @Temporal(TemporalType.TIMESTAMP)
+  private Date dateModified;
 
   /**
    * No-arg constructor needed by JPA
@@ -89,39 +113,27 @@ public class Form {
 
   }
 
-  public Form(String adopterKey)  {
-    this.adopterKey = adopterKey;
-  }
-
   /**
    * Constructor with all parameters.
    *
-   * @param userName The name of the user of the registration.
-   * @param adopterKey The world wide unique key for this specific user.
-   * @param organisationName Organisation name.
-   * @param departmentName Department name.
-   * @param firstName First name of the user.
-   * @param lastName Last name of the user.
-   * @param email E-Mail address of the user.
-   * @param country The country code (XX).
-   * @param postalCode The postal code.
-   * @param city The city name.
-   * @param street The street name.
-   * @param streetNo The street number.
-   * @param contactMe Are we allowed to contact the user.
-   * @param allowsStatistics Are we allowed to gather information for statistics.
+   * @param organisationName   Organisation name.
+   * @param departmentName     Department name.
+   * @param firstName          First name of the user.
+   * @param lastName           Last name of the user.
+   * @param email              E-Mail address of the user.
+   * @param country            The country code (XX).
+   * @param postalCode         The postal code.
+   * @param city               The city name.
+   * @param street             The street name.
+   * @param streetNo           The street number.
+   * @param contactMe          Are we allowed to contact the user.
+   * @param allowsStatistics   Are we allowed to gather information for statistics.
    * @param allowsErrorReports Are we allowed to gather error reports.
-   * @param allowsTechData Are we allowed to gather tech data.
+   * @param allowsTechData     Are we allowed to gather tech data.
    */
-  public Form(String userName, String adopterKey,
-              String organisationName, String departmentName,
-              String firstName, String lastName, String email,
-              String country, String postalCode, String city,
-              String street, String streetNo, boolean contactMe,
-              boolean allowsStatistics, boolean allowsErrorReports,
-              boolean allowsTechData) {
-    this.userName = userName;
-    this.adopterKey = adopterKey;
+  public Form(String organisationName, String departmentName, String firstName,
+          String lastName, String email, String country, String postalCode, String city, String street, String streetNo,
+          boolean contactMe, boolean allowsStatistics, boolean allowsErrorReports, boolean allowsTechData) {
     this.organisationName = organisationName;
     this.departmentName = departmentName;
     this.firstName = firstName;
@@ -136,14 +148,32 @@ public class Form {
     this.allowsStatistics = allowsStatistics;
     this.allowsErrorReports = allowsErrorReports;
     this.allowsTechData = allowsTechData;
+    this.dateCreated = new Date();
+    this.dateModified = new Date();
   }
 
-  public String getUserName() {
-    return userName;
-  }
-
-  public void setUserName(String userName) {
-    this.userName = userName;
+  /**
+   * Overwrites fields of this object.
+   *
+   * @param form The overwriting form fields.
+   */
+  public void merge(IForm form) {
+    Form f = (Form) form;
+    this.organisationName = f.organisationName;
+    this.departmentName = f.departmentName;
+    this.firstName = f.firstName;
+    this.lastName = f.lastName;
+    this.email = f.email;
+    this.country = f.country;
+    this.postalCode = f.postalCode;
+    this.city = f.city;
+    this.street = f.street;
+    this.streetNo = f.streetNo;
+    this.contactMe = f.contactMe;
+    this.allowsStatistics = f.allowsStatistics;
+    this.allowsErrorReports = f.allowsErrorReports;
+    this.allowsTechData = f.allowsTechData;
+    this.dateModified = f.dateModified;
   }
 
   public String getAdopterKey() {
@@ -152,6 +182,14 @@ public class Form {
 
   public void setAdopterKey(String adopterKey) {
     this.adopterKey = adopterKey;
+  }
+
+  public String getUsername() {
+    return username;
+  }
+
+  public void setUsername(String username) {
+    this.username = username;
   }
 
   public String getOrganisationName() {
@@ -266,11 +304,27 @@ public class Form {
     this.allowsTechData = allowsTechData;
   }
 
+  public Date getDateCreated() {
+    return dateCreated;
+  }
+
+  public void setDateCreated(Date dateCreated) {
+    this.dateCreated = dateCreated;
+  }
+
+  public Date getDateModified() {
+    return dateModified;
+  }
+
+  public void setDateModified(Date dateModified) {
+    this.dateModified = dateModified;
+  }
+
   @Override
   public boolean equals(Object obj) {
     if (!(obj instanceof Organization))
       return false;
-    return ((Form) obj).getAdopterKey().equals(adopterKey);
+    return ((Form) obj).adopterKey.equals(adopterKey);
   }
 
   @Override
@@ -281,16 +335,6 @@ public class Form {
   @Override
   public String toString() {
     return adopterKey;
-  }
-
-  public String toJson() {
-    Gson gson = new Gson();
-    return gson.toJson(this);
-  }
-
-  public static Form fromJson(String json) {
-    Gson gson = new Gson();
-    return gson.fromJson(json, Form.class);
   }
 
 }
