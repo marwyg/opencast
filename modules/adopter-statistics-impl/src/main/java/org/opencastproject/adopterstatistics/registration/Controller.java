@@ -64,7 +64,7 @@ import javax.ws.rs.core.Response;
 @RestService(name = "registrationController",
         title = "Adopter Statistics Registration Service Endpoint",
         abstractText = "Rest Endpoint for the registration form.",
-        notes = {"" })
+        notes = {"Provides operations regarding the adopter registration form"})
 public class Controller {
 
   /** The logger */

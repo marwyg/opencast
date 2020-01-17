@@ -107,18 +107,15 @@ angular.module('adminNg.controllers')
       });
     }
 
-    // TODO: This would open the modal on EVERY start-up
     AdopterRegistrationResource.get({}, function(adopter) {
-      console.log(adopter.lastModified);
       if(adopter.lastModified == null) {
         ResourceModal.show('registration-modal');
         return;
       }
-      if(adopter.organisationName === "N/A") {
+      if(adopter.organisationName === 'N/A') {
         var now = new Date();
         var lastModified = new Date(adopter.lastModified);
         var numberOfDaysPassed = Math.ceil((now - lastModified) / 8.64e7);
-        console.log(numberOfDaysPassed);
         if(numberOfDaysPassed > 30) {
           ResourceModal.show('registration-modal');
         }

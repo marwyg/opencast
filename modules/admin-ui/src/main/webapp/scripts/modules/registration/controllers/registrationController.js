@@ -37,11 +37,9 @@ angular.module('adminNg.controllers')
 
     // Filling the form fields
     $scope.adopter = new AdopterRegistrationResource();
-    AdopterRegistrationResource.get({}, function(adopter) {
+    AdopterRegistrationResource.get({}, function (adopter) {
       for (var field in adopter) {
-        if (adopter.hasOwnProperty(field)) {
-          $scope.adopter[field] = adopter[field];
-        }
+        $scope.adopter[field] = adopter[field];
       }
     });
 
@@ -79,17 +77,16 @@ angular.module('adminNg.controllers')
             }, function(error) {
               // error callback
               $scope.nextState(1);
-              console.log(error);
             });
         }).catch(angular.noop);
       }
     };
 
     $scope.notNow = function () {
-      $scope.adopter.organisationName = "N/A";
-      $scope.adopter.country = "N/A";
-      $scope.adopter.postalCode = "N/A";
-      $scope.adopter.city = "N/A";
+      $scope.adopter.organisationName = 'N/A';
+      $scope.adopter.country = 'N/A';
+      $scope.adopter.postalCode = 'N/A';
+      $scope.adopter.city = 'N/A';
 
       AuthService.getUser().$promise.then(function(authObject) {
         AdopterRegistrationResource.save($scope.adopter,
@@ -97,7 +94,6 @@ angular.module('adminNg.controllers')
             // success callback
           }, function(error) {
             // error callback
-            console.log(error);
           });
       }).catch(angular.noop);
     };
