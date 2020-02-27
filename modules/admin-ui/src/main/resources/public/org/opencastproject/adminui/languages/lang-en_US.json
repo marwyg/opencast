@@ -83,7 +83,7 @@
      "DOCUMENTATION": "Documentation",
      "REST_DOC": "REST API Docs",
      "HOTKEY_CHEAT_SHEET": "Keyboard Shortcuts",
-     "ADOPTER_REGISTRATION": "Opencast Registration"
+     "ADOPTER_REGISTRATION": "Adopter Registration"
    },
    "NOTIFICATIONS": {
      "ACL_ADDED":           "The access policy has been created",
@@ -348,14 +348,12 @@
          "CONTINUE": "Continue",
          "BACK": "Back",
          "LEGAL_INFO_STATE": {
-           "HEADER": "Terms of use & privacy policy"
+           "HEADER": "Terms of Service and Privacy Policy"
          },
          "INFORMATION_STATE": {
            "HEADER": "Thank you for using Opencast!",
-           "HEADER_HELP_US": "Help us to make Opencast even better!",
-           "INFORMATION_PARAGRAPH_1": "Our developers are constantly working to provide you the best possible user experience.",
-           "INFORMATION_PARAGRAPH_2": "To achieve that, we need to learn more about who uses Opencast and how it gets used.",
-           "INFORMATION_PARAGRAPH_3": "You can help us to gather that information with quick registration."
+           "INFORMATION_PARAGRAPH_1": "Our developers are constantly working to provide you the best possible user experience. For that, we need to know more about who uses Opencast and how it is used. You can help us with a quick registration.",
+           "INFORMATION_PARAGRAPH_2": "We highly appreciate any feedback, as even some of the data that we gather about the Opencast usage will help us to create better software, have better chances for additional funding and attract more companies to provide services around Opencast."
          },
          "FORM_STATE": {
            "ORGANISATION": "Organisation",
@@ -375,17 +373,17 @@
            "MAIL": "Email",
            "CONTACT_ME": "Contact me for updates and secruity issues",
            "WHICH_DATA_TO_SHARE": "Which data do you want to share?",
+           "POLICY_HEADLINE": "Privacy policy and terms of use",
            "USAGE_STATISTICS": "Usage statistcs",
            "ERROR_REPORTS": "Error reports",
-           "TECHNICAL_SERVER_DATA": "Technical server data",
            "READ_TERMS_OF_USE_BEFORE": "I have read and agree to the",
            "READ_TERMS_OF_USE_LINK": "privacy policy and terms of use",
            "READ_TERMS_OF_USE_AFTER": ""
          },
          "SKIP_STATE": {
            "HEADER": "Maybe next time!",
-           "TEXT_LEADING_TO_PATH": "If you want to register later on, you can do that at",
-           "TEXT_LEADING_AFTER_PATH": "at any time."
+           "TEXT_LEADING_TO_PATH": "If you want to register later on, you can do that by pressing",
+           "TEXT_LEADING_AFTER_PATH": "in the top right corner at any time."
          },
          "THANK_YOU_STATE": {
            "HEADER": "Thank you for your registration!",
@@ -397,7 +395,7 @@
           "TEXT": "An error occurred while processing your request."
         },
          "DELETE_SUBMIT_STATE": {
-          "TEXT": "Are you sure you want to delete Profile?"
+          "TEXT": "Are you sure you want to delete your registration data?"
          }
       }
    },

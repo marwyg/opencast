@@ -2,7 +2,7 @@
 <scr:component xmlns:scr="http://www.osgi.org/xmlns/scr/v1.1.0"
                name="org.opencastproject.adopterstatistics.registration.ServiceImpl"
                immediate="true">
-    <implementation class="org.opencastproject.adopterstatistics.registration.ServiceImpl"/>
+    <implementation class="org.opencastproject.adopterstatistics.registration.AdopterRegistrationServiceImpl"/>
 
     <property name="service.description" value="Adopter Statistics Registration Service"/>
 

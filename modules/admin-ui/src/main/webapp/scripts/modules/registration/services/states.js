@@ -42,17 +42,19 @@ angular.module('adminNg.services')
           },
           'form': {
             'nextState': {
-              0: 'information',
+              0: 'close',
               1: 'save',
               2: 'legal_info',
               3: 'update',
-              4: 'delete_submit'
+              4: 'delete_submit',
+              5: 'information'
             },
             'buttons': {
               'submit': true,
               'back': true,
               'skip': false,
-              'close': false,
+              'close': true,
+              'delete': false,
               'submitButtonText': 'SUBMIT'
             }
           },
@@ -84,14 +86,15 @@ angular.module('adminNg.services')
           },
           'delete_submit': {
             'nextState': {
-              0: 'form',
-              1: 'delete'
+              0: 'close',
+              1: 'delete',
+              5: 'form'
             },
             'buttons': {
               'submit': true,
               'back': true,
               'skip': false,
-              'close': false,
+              'close': true,
               'submitButtonText': 'CONFIRM'
             }
           },
@@ -148,14 +151,15 @@ angular.module('adminNg.services')
           },
           'legal_info': {
             'nextState': {
-              0: 'form',
-              1: 'error'
+              0: 'close',
+              1: 'error',
+              5: 'form'
             },
             'buttons': {
               'submit': false,
               'back': true,
               'skip': false,
-              'close': false,
+              'close': true,
               'submitButtonText': null
             }
           }
@@ -169,6 +173,7 @@ angular.module('adminNg.services')
           states.form.nextState[0] = 'close';
           states.form.buttons.back = false;
           states.form.buttons.close = true;
+          states.form.buttons.delete = true;
         }
 
         return states;

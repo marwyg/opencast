@@ -42,19 +42,16 @@ import javax.persistence.TemporalType;
  */
 @Entity
 @Access(AccessType.FIELD)
-@Table(name = "oc_statistic_registration")
+@Table(name = "oc_adopter_registration")
 @NamedQueries({
-        @NamedQuery(name = "Form.findByUsername", query = "Select f FROM Form f where f.username = :username"),
-        @NamedQuery(name = "Form.findAllCount", query = "SELECT COUNT(f) FROM Form f")
+        @NamedQuery(name = "Form.findAll", query = "SELECT f FROM Form f"),
+        @NamedQuery(name = "Form.deleteAll", query = "DELETE FROM Form f")
 })
 public class Form implements IForm {
 
   @Id
   @Column(name = "adopter_key")
   private String adopterKey;
-
-  @Column(name = "username")
-  private String username;
 
   @Column(name = "organisation")
   private String organisationName;
@@ -95,9 +92,6 @@ public class Form implements IForm {
   @Column(name = "allows_error_reports")
   private boolean allowsErrorReports;
 
-  @Column(name = "allows_tech_data")
-  private boolean allowsTechData;
-
   @Column(name = "created", nullable = false)
   @Temporal(TemporalType.TIMESTAMP)
   private Date dateCreated;
@@ -106,50 +100,17 @@ public class Form implements IForm {
   @Temporal(TemporalType.TIMESTAMP)
   private Date dateModified;
 
+  @Column(name = "agreed_to_policy")
+  private boolean agreedToPolicy;
+
+  @Column(name = "registered")
+  private boolean registered;
+
   /**
    * No-arg constructor needed by JPA
    */
   public Form() {
 
-  }
-
-  /**
-   * Constructor with all parameters.
-   *
-   * @param organisationName   Organisation name.
-   * @param departmentName     Department name.
-   * @param firstName          First name of the user.
-   * @param lastName           Last name of the user.
-   * @param email              E-Mail address of the user.
-   * @param country            The country code (XX).
-   * @param postalCode         The postal code.
-   * @param city               The city name.
-   * @param street             The street name.
-   * @param streetNo           The street number.
-   * @param contactMe          Are we allowed to contact the user.
-   * @param allowsStatistics   Are we allowed to gather information for statistics.
-   * @param allowsErrorReports Are we allowed to gather error reports.
-   * @param allowsTechData     Are we allowed to gather tech data.
-   */
-  public Form(String organisationName, String departmentName, String firstName,
-          String lastName, String email, String country, String postalCode, String city, String street, String streetNo,
-          boolean contactMe, boolean allowsStatistics, boolean allowsErrorReports, boolean allowsTechData) {
-    this.organisationName = organisationName;
-    this.departmentName = departmentName;
-    this.firstName = firstName;
-    this.lastName = lastName;
-    this.email = email;
-    this.country = country;
-    this.postalCode = postalCode;
-    this.city = city;
-    this.street = street;
-    this.streetNo = streetNo;
-    this.contactMe = contactMe;
-    this.allowsStatistics = allowsStatistics;
-    this.allowsErrorReports = allowsErrorReports;
-    this.allowsTechData = allowsTechData;
-    this.dateCreated = new Date();
-    this.dateModified = new Date();
   }
 
   /**
@@ -172,8 +133,13 @@ public class Form implements IForm {
     this.contactMe = f.contactMe;
     this.allowsStatistics = f.allowsStatistics;
     this.allowsErrorReports = f.allowsErrorReports;
-    this.allowsTechData = f.allowsTechData;
-    this.dateModified = f.dateModified;
+    this.agreedToPolicy = f.agreedToPolicy;
+    if (!this.registered) {
+      // overwrite this field only when an adopter isn't registered yet
+      // once an adopter is registered, he stays registered
+      this.registered = f.registered;
+    }
+    this.dateModified = new Date();
   }
 
   public String getAdopterKey() {
@@ -182,14 +148,6 @@ public class Form implements IForm {
 
   public void setAdopterKey(String adopterKey) {
     this.adopterKey = adopterKey;
-  }
-
-  public String getUsername() {
-    return username;
-  }
-
-  public void setUsername(String username) {
-    this.username = username;
   }
 
   public String getOrganisationName() {
@@ -272,7 +230,7 @@ public class Form implements IForm {
     this.streetNo = streetNo;
   }
 
-  public boolean isContactMe() {
+  public boolean allowsContacting() {
     return contactMe;
   }
 
@@ -280,7 +238,7 @@ public class Form implements IForm {
     this.contactMe = contactMe;
   }
 
-  public boolean isAllowsStatistics() {
+  public boolean allowsStatistics() {
     return allowsStatistics;
   }
 
@@ -288,20 +246,12 @@ public class Form implements IForm {
     this.allowsStatistics = allowsStatistics;
   }
 
-  public boolean isAllowsErrorReports() {
+  public boolean allowsErrorReports() {
     return allowsErrorReports;
   }
 
   public void setAllowsErrorReports(boolean allowsErrorReports) {
     this.allowsErrorReports = allowsErrorReports;
-  }
-
-  public boolean isAllowsTechData() {
-    return allowsTechData;
-  }
-
-  public void setAllowsTechData(boolean allowsTechData) {
-    this.allowsTechData = allowsTechData;
   }
 
   public Date getDateCreated() {
@@ -318,6 +268,22 @@ public class Form implements IForm {
 
   public void setDateModified(Date dateModified) {
     this.dateModified = dateModified;
+  }
+
+  public boolean agreedToPolicy() {
+    return agreedToPolicy;
+  }
+
+  public void setAgreedToPolicy(boolean agreedToPolicy) {
+    this.agreedToPolicy = agreedToPolicy;
+  }
+
+  public boolean isRegistered() {
+    return registered;
+  }
+
+  public void setRegistered(boolean registered) {
+    this.registered = registered;
   }
 
   @Override

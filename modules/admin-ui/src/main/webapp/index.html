@@ -62,8 +62,8 @@
           </ul>
         </div>
 
-        <div ng-if="documentationUrl || restdocsUrl" title="{{ 'HELP.HELP' | translate}}" class="nav-dd"
-                                                                                          id="help-dd" old-admin-ng-dropdown="">
+        <div ng-if="documentationUrl || restdocsUrl" title="{{ 'HELP.HELP' | translate}}"
+             class="nav-dd" id="help-dd" old-admin-ng-dropdown="">
           <div class="fa fa-question-circle"></div>
           <ul class="dropdown-ul">
             <li ng-if="documentationUrl">
@@ -79,7 +79,7 @@
             <li>
               <a translate="HELP.HOTKEY_CHEAT_SHEET" ng-click="showHotkeyCheatSheet()"></a>
             </li>
-            <li>
+            <li with-role="ROLE_ADMIN">
               <a translate="HELP.ADOPTER_REGISTRATION" ng-click="showAdopterRegistrationModal()"></a>
             </li>
           </ul>

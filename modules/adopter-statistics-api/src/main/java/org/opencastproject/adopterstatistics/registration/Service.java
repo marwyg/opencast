@@ -22,12 +22,26 @@
 package org.opencastproject.adopterstatistics.registration;
 
 /**
- * API for the Adopter Statistics Registrations
+ * API for the Adopter Statistics Registrations.
  */
 public interface Service {
 
-  void saveFormData(IForm form) throws Exception;
+  /**
+   * Saves the the submitted form.
+   *
+   * @param form The adopter registration form.
+   */
+  void saveFormData(IForm form);
 
-  IForm retrieveFormData() throws Exception;
+  /**
+   * Retrieves the adopter registration form from db.
+   *
+   * @return The form from db.
+   */
+  IForm retrieveFormData();
 
+  /**
+   * Deletes the adopter registration form from db.
+   */
+  void deleteFormData();
 }

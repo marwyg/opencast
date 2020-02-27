@@ -31,7 +31,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.EntityTransaction;
 import javax.persistence.NoResultException;
-import javax.persistence.Query;
+import javax.persistence.TypedQuery;
 
 /**
  * Repository that handles registration forms for the adopter statistics
@@ -66,14 +66,12 @@ public class FormRepositoryImpl implements FormRepository {
       em = emf.createEntityManager();
       tx = em.getTransaction();
       tx.begin();
-      Form dbForm = findByUsername(form.getUsername(), em);
+      Form dbForm = getForm(em);
       if (dbForm == null) {
-        if (countEntries(em) > 0) {
-          throw new FormRepositoryException("There must be just one form entry in the DB");
-        }
         // There is no entry in the DB yet, so we create a UUID
         form.setAdopterKey(UUID.randomUUID().toString());
         form.setDateCreated(new Date());
+        form.setDateModified(new Date());
         em.persist(form);
       } else {
         dbForm.merge(form);
@@ -92,51 +90,55 @@ public class FormRepositoryImpl implements FormRepository {
     }
   }
 
-  private int countEntries(EntityManager em) {
-    Query q = em.createNamedQuery("Form.findAllCount");
+  @Override
+  public void delete() {
+    EntityManager em = null;
+    EntityTransaction tx;
     try {
-      return ((Number) q.getSingleResult()).intValue();
+      em = emf.createEntityManager();
+      tx = em.getTransaction();
+      tx.begin();
+      em.createNamedQuery("Form.deleteAll", Form.class).executeUpdate();
+      tx.commit();
     } catch (Exception e) {
-      throw new FormRepositoryException(e);
+      logger.error("Error occurred at deleting adopter registration table.");
+      throw new RuntimeException(e);
+    } finally {
+      if (em != null)
+        em.close();
     }
   }
 
   @Override
-  public void delete() {
-    throw new RuntimeException("Deletion not implemented");
-  }
-
-  /**
-   * Return the persisted organization entity by its id
-   *
-   * @param userName the unique name of the user
-   * @param em       an open entity manager
-   * @return the registration form or <code>null</code> if not found
-   * @throws FormRepositoryException if there is a problem communicating
-   *                                 with the underlying data store
-   */
-  private Form findByUsername(String userName, EntityManager em) throws FormRepositoryException {
-    Query q = em.createNamedQuery("Form.findByUsername");
-    q.setParameter("username", userName);
-    try {
-      return (Form) q.getSingleResult();
-    } catch (NoResultException e) {
-      return null;
-    } catch (Exception e) {
-      throw new FormRepositoryException(e);
-    }
-  }
-
-  public IForm findByUsername(String username) throws FormRepositoryException {
+  public IForm getForm() throws FormRepositoryException {
     EntityManager em = null;
     try {
       em = emf.createEntityManager();
-      return findByUsername(username, em);
+      return getForm(em);
     } catch (NoResultException e) {
       return null;
     } finally {
       if (em != null)
         em.close();
+    }
+  }
+
+  /**
+   * Return the adopter registration form from db.
+   *
+   * @param em       an open entity manager
+   * @return the registration form or <code>null</code> if not found
+   * @throws FormRepositoryException if there is a problem communicating
+   *                                 with the underlying data store
+   */
+  private Form getForm(EntityManager em) throws FormRepositoryException {
+    TypedQuery<Form> q = em.createNamedQuery("Form.findAll", Form.class);
+    try {
+      return q.getSingleResult();
+    } catch (NoResultException e) {
+      return null;
+    } catch (Exception e) {
+      throw new FormRepositoryException(e);
     }
   }
 

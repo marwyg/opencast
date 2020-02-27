@@ -29,30 +29,32 @@ angular.module('adminNg.controllers')
     NewEventStates, NewEventResource, EVENT_TAB_CHANGE, Notifications, Modal, AuthService) {
 
     $scope.state = AdopterRegistrationStates.getInitialState($scope.$parent.resourceId);
-
     $scope.states = AdopterRegistrationStates.get($scope.$parent.resourceId);
-    // TODO: CountryResource is in fact a service, but should be a resource. Look at countryResource.js
-    //       for more information
     $scope.countries = CountryResource.getCountries();
+    $scope.adopter = new AdopterRegistrationResource();
+
+    document.getElementById("help-dd").classList.remove("active");
 
     // Filling the form fields
-    $scope.adopter = new AdopterRegistrationResource();
     AdopterRegistrationResource.get({}, function (adopter) {
       for (var field in adopter) {
+        if(field === 'registered') {
+          $scope.registered = adopter[field];
+          continue;
+        }
         $scope.adopter[field] = adopter[field];
       }
     });
 
-    $scope.registered = false;
 
     $scope.nextState = function (inputAction) {
-      if($scope.state == 'form' && $scope.adopterRegistrationForm.$invalid
-          && (inputAction == 1 || inputAction == 3)) {
-        return;
+      if ($scope.state === 'form' && (inputAction === 1 || inputAction === 3)) { // 1:Save, 3:Update
+        if ($scope.adopterRegistrationForm.$invalid || !$scope.adopter.agreedToPolicy) {
+          return;
+        }
       }
 
       $scope.state = $scope.states[$scope.state]['nextState'][inputAction];
-
       if($scope.state === 'close'){
         $scope.close();
       } else if($scope.state === 'skip') {
@@ -66,10 +68,11 @@ angular.module('adminNg.controllers')
       }
     };
 
-    // THE POST-REQUEST
+
     $scope.save = function () {
       if($scope.adopterRegistrationForm.$valid) {
-        AuthService.getUser().$promise.then(function(authObject) {
+        AuthService.getUser().$promise.then(function() {
+          $scope.adopter.registered = true;
           AdopterRegistrationResource.save($scope.adopter,
             function ($response, header) {
               // success callback
@@ -82,13 +85,10 @@ angular.module('adminNg.controllers')
       }
     };
 
-    $scope.notNow = function () {
-      $scope.adopter.organisationName = 'N/A';
-      $scope.adopter.country = 'N/A';
-      $scope.adopter.postalCode = 'N/A';
-      $scope.adopter.city = 'N/A';
 
-      AuthService.getUser().$promise.then(function(authObject) {
+    $scope.notNow = function () {
+      AuthService.getUser().$promise.then(function() {
+        $scope.registered = false;
         AdopterRegistrationResource.save($scope.adopter,
           function ($response, header) {
             // success callback
@@ -98,40 +98,23 @@ angular.module('adminNg.controllers')
       }).catch(angular.noop);
     };
 
-    $scope.updateProfile = function () {
-      // TODO: Perform real PUT-Request to save adopter
-      // TODO: Endpoint needs to be implemented too
-      if($scope.adopterRegistrationForm.$valid) {
-        $timeout(function() {
-          var success = true;
-          if(success) {
-            Notifications.add('success', 'ADOPTER_PROFILE_UPDATED');
-          } else {
-            Notifications.add('error', 'ADOPTER_PROFILE_NOT_UPDATED');
-          }
-          $scope.nextState(0);
-        }, 2000);
-      }
-      //AdopterRegistrationResource.update($scope.adopter, function($response) {});
-    };
 
     $scope.deleteProfile = function () {
-      // TODO: Perform real DELETE-Request to save adopter
-      // TODO: Endpoint needs to be implemented too
-      $timeout(function() {
-        var success = true;
-        if(success) {
-          Notifications.add('success', 'ADOPTER_PROFILE_DELETED');
-        } else {
-          Notifications.add('error', 'ADOPTER_PROFILE_NOT_DELETED');
-        }
-        $scope.nextState(0);
-      }, 2000);
-      //AdopterRegistrationResource.delete($scope.adopter, function($response) {});
+      AuthService.getUser().$promise.then(function() {
+        $scope.adopter.registered = true;
+        AdopterRegistrationResource.delete(
+          function ($response, header) {
+            $scope.nextState(0);
+          }, function(error) {
+            $scope.nextState(1);
+          });
+      }).catch(angular.noop);
     };
+
 
     $scope.close = function () {
       Modal.$scope.close();
     };
+
 
   }]);

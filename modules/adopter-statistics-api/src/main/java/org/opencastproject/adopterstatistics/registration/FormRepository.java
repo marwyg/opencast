@@ -33,9 +33,14 @@ public interface FormRepository {
   void save(IForm form);
 
   /**
-   * Deletes an existing registration entry.
+   * Deletes the registration entry.
    */
   void delete();
 
-  IForm findByUsername(String username);
+  /**
+   * Retrieves the registration data of an adopter.
+   * @return the form data.
+   */
+  IForm getForm();
+
 }

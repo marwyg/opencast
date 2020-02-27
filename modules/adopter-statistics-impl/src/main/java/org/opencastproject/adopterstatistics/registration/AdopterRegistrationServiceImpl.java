@@ -22,14 +22,12 @@
 package org.opencastproject.adopterstatistics.registration;
 
 import org.opencastproject.security.api.SecurityService;
-import org.opencastproject.security.api.User;
-import org.opencastproject.util.NotFoundException;
 
 /**
  * This service is used for registration and retrieving form data for
  * the logged in user in the context of adopter statistics.
  */
-public class ServiceImpl implements Service {
+public class AdopterRegistrationServiceImpl implements Service {
 
   /**
    * Security service for getting user information.
@@ -57,29 +55,22 @@ public class ServiceImpl implements Service {
   }
 
   @Override
-  public void saveFormData(IForm form) throws Exception {
-    User user = securityService.getUser();
-    if (user == null)
-      throw new NotFoundException("User from Security Service was null.");
-
-    ((Form) form).setUsername(user.getUsername());
+  public void saveFormData(IForm form) {
     formRepository.save(form);
   }
 
   @Override
-  public Form retrieveFormData() throws Exception {
-
-    User user = securityService.getUser();
-    if (user == null)
-      throw new NotFoundException("User from Security Service was null.");
-
-    Form registrationForm = (Form) formRepository.findByUsername(user.getUsername());
-
+  public Form retrieveFormData() {
+    Form registrationForm = (Form) formRepository.getForm();
     if (registrationForm == null) {
       return new Form();
     }
-
     return registrationForm;
+  }
+
+  @Override
+  public void deleteFormData() {
+    formRepository.delete();
   }
 
 }

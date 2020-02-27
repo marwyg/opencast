@@ -108,13 +108,13 @@ angular.module('adminNg.controllers')
     }
 
     AdopterRegistrationResource.get({}, function(adopter) {
-      if(adopter.lastModified == null) {
+      if(adopter.dateModified == null) {
         ResourceModal.show('registration-modal');
         return;
       }
-      if(adopter.organisationName === 'N/A') {
+      if(adopter.registered === false) {
         var now = new Date();
-        var lastModified = new Date(adopter.lastModified);
+        var lastModified = new Date(adopter.dateModified);
         var numberOfDaysPassed = Math.ceil((now - lastModified) / 8.64e7);
         if(numberOfDaysPassed > 30) {
           ResourceModal.show('registration-modal');
