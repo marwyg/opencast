@@ -19,13 +19,47 @@
  *
  */
 
-package org.opencastproject.adopterstatistics.registration;
+package org.opencastproject.adopter.registration;
 
 /**
- * Interface for the statistic registration form.
+ * Exception that will be thrown when errors occurs in the form repository.
  */
-public interface IForm {
+public class FormRepositoryException extends RuntimeException {
 
-  void merge(IForm form);
+  private static final long serialVersionUID = 7482018840067182789L;
+
+  /**
+   * Create exception.
+   */
+  public FormRepositoryException() {
+  }
+
+  /**
+   * Create exception with a message.
+   *
+   * @param message
+   */
+  public FormRepositoryException(String message) {
+    super(message);
+  }
+
+  /**
+   * Create exception with a cause.
+   *
+   * @param cause
+   */
+  public FormRepositoryException(Throwable cause) {
+    super(cause);
+  }
+
+  /**
+   * Create exception with a message and a cause.
+   *
+   * @param message
+   * @param cause
+   */
+  public FormRepositoryException(String message, Throwable cause) {
+    super(message, cause);
+  }
 
 }

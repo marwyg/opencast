@@ -19,7 +19,7 @@
  *
  */
 
-package org.opencastproject.adopterstatistics.registration;
+package org.opencastproject.adopter.registration;
 
 import org.opencastproject.security.api.SecurityService;
 

@@ -19,29 +19,43 @@
  *
  */
 
-package org.opencastproject.adopterstatistics.registration;
+package org.opencastproject.adopter.statistic.dto;
 
-/**
- * API for the Adopter Statistics Registrations.
- */
-public interface Service {
+import org.opencastproject.serviceregistry.api.HostRegistration;
 
-  /**
-   * Saves the the submitted form.
-   *
-   * @param form The adopter registration form.
-   */
-  void saveFormData(IForm form);
+public class Host {
 
-  /**
-   * Retrieves the adopter registration form from db.
-   *
-   * @return The form from db.
-   */
-  IForm retrieveFormData();
+  private int cores;
+  private float maxLoad;
+  private long memory;
 
-  /**
-   * Deletes the adopter registration form from db.
-   */
-  void deleteFormData();
+  public Host(HostRegistration host) {
+    this.cores = host.getCores();
+    this.maxLoad = host.getMaxLoad();
+    this.memory = host.getMemory();
+  }
+
+  public int getCores() {
+    return cores;
+  }
+
+  public void setCores(int cores) {
+    this.cores = cores;
+  }
+
+  public float getMaxLoad() {
+    return maxLoad;
+  }
+
+  public void setMaxLoad(float maxLoad) {
+    this.maxLoad = maxLoad;
+  }
+
+  public long getMemory() {
+    return memory;
+  }
+
+  public void setMemory(long memory) {
+    this.memory = memory;
+  }
 }

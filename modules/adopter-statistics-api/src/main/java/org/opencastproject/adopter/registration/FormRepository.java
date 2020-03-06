@@ -19,7 +19,7 @@
  *
  */
 
-package org.opencastproject.adopterstatistics.registration;
+package org.opencastproject.adopter.registration;
 
 /**
  * API for the repository that handles registration

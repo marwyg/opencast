@@ -2,12 +2,12 @@
 <scr:component xmlns:scr="http://www.osgi.org/xmlns/scr/v1.1.0"
                name="org.opencastproject.adopterstatistics.registration.FormRepositoryImpl"
                immediate="true">
-    <implementation class="org.opencastproject.adopterstatistics.registration.FormRepositoryImpl"/>
+    <implementation class="org.opencastproject.adopter.registration.FormRepositoryImpl"/>
 
     <property name="service.description" value="Repository for the statistics registration form"/>
 
     <service>
-        <provide interface="org.opencastproject.adopterstatistics.registration.FormRepository"/>
+        <provide interface="org.opencastproject.adopter.registration.FormRepository"/>
     </service>
 
     <reference name="entityManagerFactory" interface="javax.persistence.EntityManagerFactory"

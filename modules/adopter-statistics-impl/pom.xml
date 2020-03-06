@@ -26,6 +26,21 @@
       <version>${project.version}</version>
     </dependency>
     <dependency>
+      <groupId>org.opencastproject</groupId>
+      <artifactId>opencast-series-service-api</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.opencastproject</groupId>
+      <artifactId>opencast-userdirectory</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.opencastproject</groupId>
+      <artifactId>opencast-asset-manager-api</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
     </dependency>
@@ -72,7 +87,8 @@
             <Service-Component>
               OSGI-INF/adopter-registration-repository.xml,
               OSGI-INF/adopter-registration-rest.xml,
-              OSGI-INF/adopter-registration-service.xml
+              OSGI-INF/adopter-registration-service.xml,
+              OSGI-INF/adopter-scheduler.xml
             </Service-Component>
             <Meta-Persistence>
               META-INF/persistence.xml

@@ -19,7 +19,7 @@
  *
  */
 
-package org.opencastproject.adopterstatistics.registration;
+package org.opencastproject.adopter.registration;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
