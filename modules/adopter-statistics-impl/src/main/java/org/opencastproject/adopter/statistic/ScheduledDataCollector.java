@@ -28,10 +28,16 @@ import org.opencastproject.adopter.statistic.dto.Host;
 import org.opencastproject.adopter.statistic.dto.StatisticData;
 import org.opencastproject.assetmanager.api.AssetManager;
 import org.opencastproject.assetmanager.api.query.AQueryBuilder;
+import org.opencastproject.security.api.DefaultOrganization;
+import org.opencastproject.security.api.Organization;
+import org.opencastproject.security.api.SecurityService;
+import org.opencastproject.security.api.User;
+import org.opencastproject.security.util.SecurityUtil;
 import org.opencastproject.series.api.SeriesService;
 import org.opencastproject.serviceregistry.api.ServiceRegistry;
 import org.opencastproject.userdirectory.JpaUserAndRoleProvider;
 
+import org.osgi.framework.BundleContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -62,6 +68,8 @@ public class ScheduledDataCollector extends TimerTask {
   /** User and role provider */
   protected JpaUserAndRoleProvider userAndRoleProvider;
 
+  /** The security service */
+  protected SecurityService securityService;
 
   /** OSGi setter for the adopter form service. */
   public void setAdopterFormService(Service adopterFormService) {
@@ -88,6 +96,11 @@ public class ScheduledDataCollector extends TimerTask {
     this.userAndRoleProvider = userAndRoleProvider;
   }
 
+  /** OSGi callback for setting the security service. */
+  public void setSecurityService(SecurityService securityService) {
+    this.securityService = securityService;
+  }
+
   //================================================================================
   // Properties
   //================================================================================
@@ -95,25 +108,44 @@ public class ScheduledDataCollector extends TimerTask {
   /** Provides methods for sending statistic data */
   private Sender sender;
 
+  /** The organisation of the system admin user */
+  private Organization defaultOrganization;
+
+  /** System admin user */
+  private User systemAdminUser;
+
   //================================================================================
   // Scheduler methods
   //================================================================================
 
   /** Entry point of the scheduler. Configured with the activate parameter at OSGi component declaration. */
-  public void start() {
+  public void activate(BundleContext ctx) throws Exception {
+    logger.info("Starting adopter statistic scheduler...");
+
+    this.defaultOrganization = new DefaultOrganization();
+    String systemAdminUserName = ctx.getProperty(SecurityUtil.PROPERTY_KEY_SYS_USER);
+    this.systemAdminUser = SecurityUtil.createSystemUser(systemAdminUserName, defaultOrganization);
+    this.sender = new Sender();
+
     Timer time = new Timer();
-    Sender sender = new Sender();
-    ScheduledDataCollector task = new ScheduledDataCollector();
-    //time.schedule(task, 0, 1000 * 60 * 60 * 24);
-    time.schedule(task, 0, 1000 * 5);
+    time.schedule(this, 0, 1000 * 5);
+    //time.schedule(this, 0, 1000 * 60 * 60 * 24);
   }
 
   /** The scheduled method. It collects statistic data around Opencast and sends it via POST request. */
   @Override
   public void run() {
-    Form adopter = (Form) adopterFormService.retrieveFormData();
-    if (adopter.isRegistered() && adopter.agreedToPolicy()) {
+    logger.info("Executing adopter statistic scheduler task...");
 
+    Form adopter;
+    try {
+      adopter = (Form) adopterFormService.retrieveFormData();
+    } catch (Exception e) {
+      logger.error("Couldn't retrieve adopter form data.", e);
+      return;
+    }
+
+    if (adopter.isRegistered() && adopter.agreedToPolicy()) {
       try {
         String generalDataAsJson = collectGeneralData(adopter);
         sender.send(generalDataAsJson);
@@ -153,11 +185,15 @@ public class ScheduledDataCollector extends TimerTask {
     StatisticData statisticData = new StatisticData();
     serviceRegistry.getHostRegistrations().forEach(host -> statisticData.addHost(new Host(host)));
     statisticData.setJobCount(serviceRegistry.count(null, null));
+
     AQueryBuilder q = assetManager.createQuery();
-    long eventCount = q.select(q.snapshot()).where(q.version().isLatest()).run().getTotalSize();
-    statisticData.setEventCount(eventCount);
+    SecurityUtil.runAs(this.securityService, this.defaultOrganization, this.systemAdminUser, () -> {
+      long eventCount = q.select(q.snapshot()).where(q.version().isLatest()).run().getTotalSize();
+      statisticData.setEventCount(eventCount);
+    });
+
     statisticData.setSeriesCount(seriesService.getSeriesCount());
-    statisticData.setUserCount(userAndRoleProvider.countUsers());
+    statisticData.setUserCount(userAndRoleProvider.countAllUsers());
     return statisticData.jsonify();
   }
 

@@ -43,7 +43,7 @@ public class Sender {
    */
   public void send(String json) throws Exception {
     try {
-      URL url = new URL("https://127.0.0.1:8080/adopter"); // TODO woher die URL?
+      URL url = new URL("http://127.0.0.1:8080/adopter"); // TODO woher die URL?
       HttpURLConnection con = (HttpURLConnection) url.openConnection();
       con.setRequestMethod("POST");
       con.setRequestProperty("Content-Type", "application/json; utf-8");

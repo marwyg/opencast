@@ -56,6 +56,14 @@
       <groupId>com.google.code.gson</groupId>
       <artifactId>gson</artifactId>
     </dependency>
+    <dependency>
+      <groupId>org.osgi</groupId>
+      <artifactId>org.osgi.core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.osgi</groupId>
+      <artifactId>org.osgi.compendium</artifactId>
+    </dependency>
   </dependencies>
   <build>
     <plugins>
@@ -67,6 +75,7 @@
           <ignoredUnusedDeclaredDependencies>
             <!-- runtime tests -->
             <ignoredUnusedDeclaredDependency>com.sun.jersey:jersey-bundle</ignoredUnusedDeclaredDependency>
+            <ignoredUnusedDeclaredDependency>org.osgi:org.osgi.compendium</ignoredUnusedDeclaredDependency>
           </ignoredUnusedDeclaredDependencies>
         </configuration>
       </plugin>
@@ -82,7 +91,7 @@
               *
             </Import-Package>
             <Export-Package>
-              org.opencastproject.adopterstatistics;version=${project.version}
+              org.opencastproject.adopter;version=${project.version}
             </Export-Package>
             <Service-Component>
               OSGI-INF/adopter-registration-repository.xml,

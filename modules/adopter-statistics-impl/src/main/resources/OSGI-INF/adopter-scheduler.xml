@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <scr:component xmlns:scr="http://www.osgi.org/xmlns/scr/v1.1.0" immediate="true"
-               name="org.opencastproject.adopter.statistic.ScheduledDataCollector"
-               activate="start">
+               name="org.opencastproject.adopter.statistic.ScheduledDataCollector">
 
   <implementation class="org.opencastproject.adopter.statistic.ScheduledDataCollector"/>
 
@@ -12,11 +11,11 @@
     <provide interface="org.opencastproject.adopter.statistic.ScheduledDataCollector"/>
   </service>
 
-  <reference name="AdopterFormService"
+  <reference name="adopter-registration-service"
              interface="org.opencastproject.adopter.registration.Service"
              bind="setAdopterFormService"/>
 
-  <reference name="ServiceRegistry"
+  <reference name="service-registry"
              interface="org.opencastproject.serviceregistry.api.ServiceRegistry"
              bind="setServiceRegistry"/>
 
@@ -28,8 +27,12 @@
              interface="org.opencastproject.series.api.SeriesService"
              bind="setSeriesService"/>
 
-  <reference name="UserAndRoleProvider"
+  <reference name="user-and-role-rrovider"
              interface="org.opencastproject.userdirectory.JpaUserAndRoleProvider"
              bind="setUserAndRoleProvider"/>
+
+  <reference name="security-service"
+             interface="org.opencastproject.security.api.SecurityService"
+             bind="setSecurityService"/>
 
 </scr:component>
