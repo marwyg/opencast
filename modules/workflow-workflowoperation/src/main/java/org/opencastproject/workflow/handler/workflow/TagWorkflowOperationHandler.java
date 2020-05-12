@@ -119,6 +119,11 @@ public class TagWorkflowOperationHandler extends AbstractWorkflowOperationHandle
       elementSelector.addTag(tag);
     }
 
+    boolean targetFlavorUsesWildcard = false;
+    if (configuredTargetFlavor != null) {
+      targetFlavorUsesWildcard = configuredTargetFlavor.startsWith("*/");
+    }
+
     Collection<MediaPackageElement> elements = elementSelector.select(mediaPackage, false);
     for (MediaPackageElement e : elements) {
       MediaPackageElement element = e;
@@ -127,8 +132,14 @@ public class TagWorkflowOperationHandler extends AbstractWorkflowOperationHandle
         element.setIdentifier(null);
         element.setURI(e.getURI()); // use the same URI as the original
       }
-      if (configuredTargetFlavor != null)
-        element.setFlavor(MediaPackageElementFlavor.parseFlavor(configuredTargetFlavor));
+
+      if (configuredTargetFlavor != null) {
+        String targetFlavor = configuredTargetFlavor;
+        if (targetFlavorUsesWildcard) {
+          targetFlavor = configuredTargetFlavor.replaceFirst("\\*", element.getFlavor().getType());
+        }
+        element.setFlavor(MediaPackageElementFlavor.parseFlavor(targetFlavor));
+      }
 
       if (overrideTags.size() > 0) {
         element.clearTags();
