@@ -6,24 +6,13 @@ Javascript video player capable of playing an unlimited number of audio & video 
 synchronously, Live Streaming, Zoom, Captions, contributed user plugins and a lot more. 
 It is easy to install and customize for your own needs.
 
-Paella has been specially designed for lecture recordings, and currently is the default 
-video player of the [Opencast Community](https://opencast.org). It works with all HTML5 browsers
+Paella has been specially designed for lecture recordings. It works with all HTML5 browsers
 (Chrome, Firefox, Safari and Edge) and within iOS and Android.
 
-Have a look to the paella [features list](https://paellaplayer.upv.es/features/) 
+Have a look to the paella [features list](https://paellaplayer.upv.es/features/)
 or see them live on paella [demos page](https://paellaplayer.upv.es/demos/)
 
-Enable paella player
---------------------
-
-To enable paella player you need to edit the `prop.player` variable.
-This can be enabled for each tenant. So the configuration keys are located in
-`etc/org.opencastproject.organization-mh_default_org.cfg`.
-
-
-To activate the paella player set:
-
-    prop.player=/paella/ui/watch.html?id=#{id}
+Paella is Opencast's default player.
 
 
 Configuration
