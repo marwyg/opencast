@@ -22,6 +22,7 @@
 package org.opencastproject.adopter.statistic.dto;
 
 import com.google.gson.Gson;
+import com.google.gson.annotations.SerializedName;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,22 +32,108 @@ import java.util.List;
  */
 public class StatisticData {
 
+  /** JSON parser */
+  private static final Gson gson = new Gson();
+
+  //================================================================================
+  // Properties
+  //================================================================================
+
+  /** Every adopter has his own key, so when the data of different adopters will be
+   * collected, we can use this as an ID and identify every statistic data entry
+   * later on (in a database for example) to update existing entries.
+   * We don't use the adopter key at this point (from the 'GeneralData' class), because
+   * we are not allowed to associate the statistic data with the adopter.
+   */
+  @SerializedName("statistic_key")
+  private String statisticKey;
+
+  /** The total number of jobs. */
+  @SerializedName("job_count")
+  private long jobCount;
+
+  /** The total number of events. */
+  @SerializedName("event_count")
+  private long eventCount;
+
+  /** The total number of series. */
+  @SerializedName("series_count")
+  private int seriesCount;
+
+  /** The total number of users. */
+  @SerializedName("user_count")
+  private long userCount;
+
   /**
    * This list represents the number of hosts of an adopter.
    * Each list entry contains the amount of processor cores of a host.
    */
   private List<Host> hosts;
 
-  /** JSON parser */
-  private static final Gson gson = new Gson();
 
-  private long jobCount;
-  private long eventCount;
-  private int seriesCount;
-  private long userCount;
+  //================================================================================
+  // Methods
+  //================================================================================
 
+  /**
+   * A StatisticData instance should always have a unique key.
+   * @param statisticKey The unique key that identifies
+   */
+  public StatisticData(String statisticKey) {
+    this.statisticKey = statisticKey;
+  }
+
+  /**
+   * Parses an instance of this class to a JSON string.
+   * @return The instance as JSON string.
+   */
   public String jsonify() {
     return gson.toJson(this);
+  }
+
+
+  //================================================================================
+  // Getter and Setter
+  //================================================================================
+
+  public String getStatisticKey() {
+    return statisticKey;
+  }
+
+  public void setStatisticKey(String statisticKey) {
+    this.statisticKey = statisticKey;
+  }
+
+  public long getJobCount() {
+    return jobCount;
+  }
+
+  public void setJobCount(long jobCount) {
+    this.jobCount = jobCount;
+  }
+
+  public long getEventCount() {
+    return eventCount;
+  }
+
+  public void setEventCount(long eventCount) {
+    this.eventCount = eventCount;
+  }
+
+  public int getSeriesCount() {
+    return seriesCount;
+  }
+
+  public void setSeriesCount(int seriesCount) {
+    this.seriesCount = seriesCount;
+  }
+
+  public long getUserCount() {
+    return userCount;
+  }
+
+  public void setUserCount(long userCount) {
+    this.userCount = userCount;
   }
 
   public List<Host> getHosts() {
@@ -62,26 +149,6 @@ public class StatisticData {
       this.hosts = new ArrayList<>();
     }
     this.hosts.add(host);
-  }
-
-  public long getJobCount() {
-    return jobCount;
-  }
-
-  public void setJobCount(long jobCount) {
-    this.jobCount = jobCount;
-  }
-
-  public void setEventCount(long eventCount) {
-    this.eventCount = eventCount;
-  }
-
-  public void setSeriesCount(int seriesCount) {
-    this.seriesCount = seriesCount;
-  }
-
-  public void setUserCount(long userCount) {
-    this.userCount = userCount;
   }
 
 }

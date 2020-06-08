@@ -53,6 +53,9 @@ public class Form implements IForm {
   @Column(name = "adopter_key")
   private String adopterKey;
 
+  @Column(name = "statistic_key")
+  private String statisticKey;
+
   @Column(name = "organisation")
   private String organisationName;
 
@@ -107,7 +110,7 @@ public class Form implements IForm {
   private boolean registered;
 
   /**
-   * No-arg constructor needed by JPA
+   * No-arg constructor needed by JPA.
    */
   public Form() {
 
@@ -148,6 +151,14 @@ public class Form implements IForm {
 
   public void setAdopterKey(String adopterKey) {
     this.adopterKey = adopterKey;
+  }
+
+  public String getStatisticKey() {
+    return statisticKey;
+  }
+
+  public void setStatisticKey(String statisticKey) {
+    this.statisticKey = statisticKey;
   }
 
   public String getOrganisationName() {

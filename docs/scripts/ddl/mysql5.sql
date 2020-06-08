@@ -601,6 +601,7 @@ CREATE TABLE oc_transcription_service_job (
 
 CREATE TABLE oc_adopter_registration (
   adopter_key VARCHAR(255) NOT NULL,
+  statistic_key VARCHAR(255) NOT NULL,
   organisation VARCHAR(255),
   department VARCHAR(255),
   first_name VARCHAR(255),

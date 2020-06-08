@@ -25,8 +25,17 @@ import org.opencastproject.serviceregistry.api.HostRegistration;
 
 public class Host {
 
+  //================================================================================
+  // Properties
+  //================================================================================
+
+  /** Amount of cores. */
   private int cores;
+
+  /** The maximum load this host can run. */
   private float maxLoad;
+
+  /** The allocated memory of this host. */
   private long memory;
 
   public Host(HostRegistration host) {
@@ -34,6 +43,10 @@ public class Host {
     this.maxLoad = host.getMaxLoad();
     this.memory = host.getMemory();
   }
+
+  //================================================================================
+  // Getter and Setter
+  //================================================================================
 
   public int getCores() {
     return cores;

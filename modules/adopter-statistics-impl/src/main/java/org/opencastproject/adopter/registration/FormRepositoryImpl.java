@@ -70,6 +70,7 @@ public class FormRepositoryImpl implements FormRepository {
       if (dbForm == null) {
         // There is no entry in the DB yet, so we create a UUID
         form.setAdopterKey(UUID.randomUUID().toString());
+        form.setStatisticKey(UUID.randomUUID().toString());
         form.setDateCreated(new Date());
         form.setDateModified(new Date());
         em.persist(form);

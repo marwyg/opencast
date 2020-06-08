@@ -28,6 +28,7 @@ import org.opencastproject.adopter.statistic.dto.Host;
 import org.opencastproject.adopter.statistic.dto.StatisticData;
 import org.opencastproject.assetmanager.api.AssetManager;
 import org.opencastproject.assetmanager.api.query.AQueryBuilder;
+import org.opencastproject.assetmanager.api.query.AResult;
 import org.opencastproject.security.api.DefaultOrganization;
 import org.opencastproject.security.api.Organization;
 import org.opencastproject.security.api.SecurityService;
@@ -37,10 +38,13 @@ import org.opencastproject.series.api.SeriesService;
 import org.opencastproject.serviceregistry.api.ServiceRegistry;
 import org.opencastproject.userdirectory.JpaUserAndRoleProvider;
 
+import org.apache.commons.lang3.math.NumberUtils;
 import org.osgi.framework.BundleContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -49,8 +53,17 @@ public class ScheduledDataCollector extends TimerTask {
 
   private static final Logger logger = LoggerFactory.getLogger(ScheduledDataCollector.class);
 
+  /** The property key containing the address of the external server where the statistic data will be send to. */
+  private static final String PROP_KEY_STATISTIC_SERVER_ADDRESS = "org.opencastproject.adopter.statistic.server.url";
+
+  /** The property key containing the time when the gathered data shall be sent. It uses the 24 hours format (0-23). */
+  private static final String PROP_KEY_STATISTIC_SEND_TIME = "org.opencastproject.adopter.scheduler.time";
+
+  private static final int DAY_IN_MILLISECONDS = 1000 * 60 * 60 * 24;
+  private static final int HOUR_IN_MILLISECONDS = 1000 * 60 * 60;
+
   //================================================================================
-  // OSGi
+  // OSGi Properties
   //================================================================================
 
   /** Provides access to the adopter form information */
@@ -101,6 +114,7 @@ public class ScheduledDataCollector extends TimerTask {
     this.securityService = securityService;
   }
 
+
   //================================================================================
   // Properties
   //================================================================================
@@ -114,25 +128,41 @@ public class ScheduledDataCollector extends TimerTask {
   /** System admin user */
   private User systemAdminUser;
 
+
   //================================================================================
   // Scheduler methods
   //================================================================================
 
-  /** Entry point of the scheduler. Configured with the activate parameter at OSGi component declaration. */
-  public void activate(BundleContext ctx) throws Exception {
-    logger.info("Starting adopter statistic scheduler...");
-
+  /**
+   * Entry point of the scheduler. Configured with the
+   * activate parameter at OSGi component declaration.
+   * @param ctx OSGi component context
+   */
+  public void activate(BundleContext ctx) {
+    logger.info("Activating adopter statistic scheduler...");
     this.defaultOrganization = new DefaultOrganization();
     String systemAdminUserName = ctx.getProperty(SecurityUtil.PROPERTY_KEY_SYS_USER);
     this.systemAdminUser = SecurityUtil.createSystemUser(systemAdminUserName, defaultOrganization);
-    this.sender = new Sender();
+    String statisticServerBaseUrl = ctx.getProperty(PROP_KEY_STATISTIC_SERVER_ADDRESS);
+    this.sender = new Sender(statisticServerBaseUrl);
 
-    Timer time = new Timer();
-    time.schedule(this, 0, 1000 * 5);
-    //time.schedule(this, 0, 1000 * 60 * 60 * 24);
+    // The following code calculates the delay for the scheduler, so the task can
+    // be executed at the time that has been set in the 'custom.properties' file
+    String sendTimeStr = ctx.getProperty(PROP_KEY_STATISTIC_SEND_TIME); // scheduler execution time
+    int timeToSend = NumberUtils.createInteger(sendTimeStr);
+    int currentHour = NumberUtils.createInteger(new SimpleDateFormat("H").format(new Date()));
+    if (currentHour > timeToSend) timeToSend += 24;
+    int schedulerDelay = timeToSend - currentHour;
+    logger.info("Starting the adopter statistic scheduler task in {} hours. "
+            + "After then, it will repeat the task every 24 hours.", schedulerDelay);
+    schedulerDelay *= HOUR_IN_MILLISECONDS; //convert the delay from hours to milliseconds
+    new Timer().schedule(this, schedulerDelay, DAY_IN_MILLISECONDS);
   }
 
-  /** The scheduled method. It collects statistic data around Opencast and sends it via POST request. */
+  /**
+   * The scheduled method. It collects statistic data
+   * around Opencast and sends it via POST request.
+   */
   @Override
   public void run() {
     logger.info("Executing adopter statistic scheduler task...");
@@ -148,15 +178,15 @@ public class ScheduledDataCollector extends TimerTask {
     if (adopter.isRegistered() && adopter.agreedToPolicy()) {
       try {
         String generalDataAsJson = collectGeneralData(adopter);
-        sender.send(generalDataAsJson);
+        sender.sendGeneralData(generalDataAsJson);
       } catch (Exception e) {
         logger.error("Error occurred while processing adopter general data.", e);
       }
 
       if (adopter.allowsStatistics()) {
         try {
-          String statisticDataAsJson = collectStatisticData();
-          sender.send(statisticDataAsJson);
+          String statisticDataAsJson = collectStatisticData(adopter.getStatisticKey());
+          sender.sendStatistics(statisticDataAsJson);
         } catch (Exception e) {
           logger.error("Error occurred while processing adopter statistic data.", e);
         }
@@ -176,20 +206,31 @@ public class ScheduledDataCollector extends TimerTask {
   // Data collecting methods
   //================================================================================
 
+  /**
+   * Just retrieves the form data of the adopter.
+   * @param adopterRegistrationForm The (hopefully) filled out adopter form.
+   * @return The adopter form containing general data as JSON string.
+   */
   private String collectGeneralData(Form adopterRegistrationForm) {
     GeneralData generalData = new GeneralData(adopterRegistrationForm);
     return generalData.jsonify();
   }
 
-  private String collectStatisticData() throws Exception {
-    StatisticData statisticData = new StatisticData();
+  /**
+   * Gathers various statistic data.
+   * @param statisticKey A Unique key per adopter (not per statistic entry).
+   * @return The statistic data as JSON string.
+   * @throws Exception General exception that can occur while gathering data.
+   */
+  private String collectStatisticData(String statisticKey) throws Exception {
+    StatisticData statisticData = new StatisticData(statisticKey);
     serviceRegistry.getHostRegistrations().forEach(host -> statisticData.addHost(new Host(host)));
     statisticData.setJobCount(serviceRegistry.count(null, null));
 
     AQueryBuilder q = assetManager.createQuery();
     SecurityUtil.runAs(this.securityService, this.defaultOrganization, this.systemAdminUser, () -> {
-      long eventCount = q.select(q.snapshot()).where(q.version().isLatest()).run().getTotalSize();
-      statisticData.setEventCount(eventCount);
+      AResult result = q.select(q.snapshot()).where(q.version().isLatest()).run();
+      statisticData.setEventCount(result.getSize());
     });
 
     statisticData.setSeriesCount(seriesService.getSeriesCount());

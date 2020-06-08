@@ -25,6 +25,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
@@ -34,16 +35,63 @@ import java.nio.charset.StandardCharsets;
 /** Contains methods for sending statistic data via rest. */
 public class Sender {
 
+  /** The logger */
   private static final Logger logger = LoggerFactory.getLogger(Sender.class);
+
+  /** The base URL for the external server where the data will be send to */
+  private String baseUrl;
+
+  /** The suffixes for the base statistic server URL
+   * it determines to which REST endpoint the data will be sent */
+  private static final String GENERAL_DATA_URL_SUFFIX = "adopter";
+  private static final String STATISTIC_URL_SUFFIX = "statistic";
+
+
+  //================================================================================
+  // Constructor
+  //================================================================================
+
+  /**
+   * Simple Constructor that require the URL of the statistic server.
+   * @param statisticServerBaseUrl The URL prefix of the statistic server.
+   */
+  public Sender(String statisticServerBaseUrl) {
+    if (!statisticServerBaseUrl.endsWith("/"))
+      statisticServerBaseUrl += "/";
+    this.baseUrl = statisticServerBaseUrl;
+  }
+
+
+  //================================================================================
+  // Methods
+  //================================================================================
+
+  /***
+   * Executes the 'send' method with the proper REST URL prefix.
+   * @param json The data to be sent.
+   * @throws Exception General exception that can occur while sending the data.
+   */
+  public void sendGeneralData(String json) throws Exception {
+    send(json, GENERAL_DATA_URL_SUFFIX);
+  }
+
+  /***
+   * Executes the 'send' method with the proper REST URL prefix.
+   * @param json The data to be sent.
+   * @throws Exception General exception that can occur while sending the data.
+   */
+  public void sendStatistics(String json) throws Exception {
+    send(json, STATISTIC_URL_SUFFIX);
+  }
 
   /**
    * Sends the JSON string via post request.
    * @param json The JSON string that has to be send.
-   * @throws Exception General exception that occur while processing the POST request.
+   * @throws Exception General exception that can occur while processing the POST request.
    */
-  public void send(String json) throws Exception {
+  private void send(String json, String urlSuffix) throws Exception {
     try {
-      URL url = new URL("http://127.0.0.1:8080/adopter"); // TODO woher die URL?
+      URL url = new URL(baseUrl + urlSuffix);
       HttpURLConnection con = (HttpURLConnection) url.openConnection();
       con.setRequestMethod("POST");
       con.setRequestProperty("Content-Type", "application/json; utf-8");
@@ -55,14 +103,27 @@ public class Sender {
         os.write(input, 0, input.length);
       }
 
+      String httpStatus = con.getResponseCode() + "";
+      boolean errorOccurred = !httpStatus.startsWith("2");
+      InputStream responseStream;
+
+      if (errorOccurred) {
+        responseStream = con.getErrorStream();
+      } else {
+        responseStream = con.getInputStream();
+      }
+
       try (BufferedReader br = new BufferedReader(
-              new InputStreamReader(con.getInputStream(), StandardCharsets.UTF_8))) {
+              new InputStreamReader(responseStream, StandardCharsets.UTF_8))) {
         StringBuilder response = new StringBuilder();
         String responseLine;
         while ((responseLine = br.readLine()) != null) {
           response.append(responseLine.trim());
         }
-
+        if (errorOccurred) {
+          String errorMessage = String.format("HttpStatus: %s, HttpResponse: %s", httpStatus, response);
+          throw new RuntimeException(errorMessage);
+        }
       }
 
     } catch (Exception e) {

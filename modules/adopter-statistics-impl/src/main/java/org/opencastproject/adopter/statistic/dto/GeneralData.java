@@ -24,6 +24,7 @@ package org.opencastproject.adopter.statistic.dto;
 import org.opencastproject.adopter.registration.Form;
 
 import com.google.gson.Gson;
+import com.google.gson.annotations.SerializedName;
 
 /** DTO for adopters general data. */
 public class GeneralData {
@@ -35,16 +36,44 @@ public class GeneralData {
   // Properties
   //================================================================================
 
+  /** The unique identification key for an adopter. */
+  @SerializedName("adopter_key")
   private final String adopterKey;
+
+  /** The organisation of the adopter. */
+  @SerializedName("organisation_name")
   private final String organisationName;
+
+  /** Department name of the adopter. */
+  @SerializedName("department_name")
   private final String departmentName;
+
+  /** The first name of the adopter. */
+  @SerializedName("first_name")
   private final String firstName;
+
+  /** The last name of the adopter. */
+  @SerializedName("last_name")
   private final String lastName;
+
+  /** Organization country. */
   private final String country;
+
+  /** Organization city. */
   private final String city;
+
+  /** Organization postal code. */
+  @SerializedName("postal_code")
   private final String postalCode;
+
+  /** Organization street name. */
   private final String street;
+
+  /** Organization street number. */
+  @SerializedName("street_no")
   private final String streetNo;
+
+  /** The E-Mail address of the adopter. */
   private final String email;
 
   public GeneralData(Form adopterRegistrationForm) {
@@ -61,6 +90,10 @@ public class GeneralData {
     this.email = adopterRegistrationForm.getEmail();
   }
 
+  /**
+   * Creates a JSON string from an instance of this class.
+   * @return This class as a JSON string.
+   */
   public String jsonify() {
     return gson.toJson(this);
   }
