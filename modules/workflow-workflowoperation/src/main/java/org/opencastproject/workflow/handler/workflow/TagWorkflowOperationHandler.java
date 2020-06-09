@@ -119,6 +119,20 @@ public class TagWorkflowOperationHandler extends AbstractWorkflowOperationHandle
       elementSelector.addTag(tag);
     }
 
+    boolean wildcardInTargetFlavorType = false;
+    boolean wildcardInTargetFlavorSubtype = false;
+    if (configuredTargetFlavor != null) {
+      String[] targetFlavorTypes = configuredTargetFlavor.split("/");
+      if (targetFlavorTypes.length != 2) {
+        String errorMsg = String.format("The configured target flavor has a wrong format. "
+                + "The configured target flavor: '%s'.", configuredTargetFlavor);
+        logger.error(errorMsg);
+        throw new RuntimeException(errorMsg);
+      }
+      wildcardInTargetFlavorType = "*".equals(targetFlavorTypes[0]);
+      wildcardInTargetFlavorSubtype = "*".equals(targetFlavorTypes[1]);
+    }
+
     Collection<MediaPackageElement> elements = elementSelector.select(mediaPackage, false);
     for (MediaPackageElement e : elements) {
       MediaPackageElement element = e;
@@ -127,8 +141,21 @@ public class TagWorkflowOperationHandler extends AbstractWorkflowOperationHandle
         element.setIdentifier(null);
         element.setURI(e.getURI()); // use the same URI as the original
       }
-      if (configuredTargetFlavor != null)
-        element.setFlavor(MediaPackageElementFlavor.parseFlavor(configuredTargetFlavor));
+
+      if (configuredTargetFlavor != null) {
+        String targetFlavor = configuredTargetFlavor;
+
+        if (wildcardInTargetFlavorType) {
+          targetFlavor = targetFlavor.replaceFirst("\\*", element.getFlavor().getType());
+        }
+
+        if (wildcardInTargetFlavorSubtype) {
+          // at this point there should only be one '*' remaining and it should be the subtype wildcard.
+          targetFlavor = targetFlavor.replace("*", element.getFlavor().getSubtype());
+        }
+
+        element.setFlavor(MediaPackageElementFlavor.parseFlavor(targetFlavor));
+      }
 
       if (overrideTags.size() > 0) {
         element.clearTags();
