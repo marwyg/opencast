@@ -29,35 +29,26 @@ import org.opencastproject.security.api.SecurityService;
  */
 public class AdopterRegistrationServiceImpl implements Service {
 
-  /**
-   * Security service for getting user information.
-   */
+  //================================================================================
+  // OSGi properties
+  //================================================================================
+
+  /** Security service for getting user information. */
   private SecurityService securityService;
 
-  /**
-   * The database repository for the registration forms.
-   */
+  /** The database repository for the registration forms. */
   private FormRepository formRepository;
 
-
-  /**
-   * @param securityService Instance of this class.
-   */
-  protected void setSecurityService(SecurityService securityService) {
-    this.securityService = securityService;
-  }
-
-  /**
-   * @param formRepository Instance of this class.
-   */
-  protected void setFormRepository(FormRepository formRepository) {
-    this.formRepository = formRepository;
-  }
 
   @Override
   public void saveFormData(IForm form) {
     formRepository.save(form);
   }
+
+
+  //================================================================================
+  // Methods
+  //================================================================================
 
   @Override
   public Form retrieveFormData() {
@@ -71,6 +62,21 @@ public class AdopterRegistrationServiceImpl implements Service {
   @Override
   public void deleteFormData() {
     formRepository.delete();
+  }
+
+
+  //================================================================================
+  // OSGI setter
+  //================================================================================
+
+  /** OSGi setter for the security service. */
+  protected void setSecurityService(SecurityService securityService) {
+    this.securityService = securityService;
+  }
+
+  /** OSGi setter for the form repository. */
+  protected void setFormRepository(FormRepository formRepository) {
+    this.formRepository = formRepository;
   }
 
 }

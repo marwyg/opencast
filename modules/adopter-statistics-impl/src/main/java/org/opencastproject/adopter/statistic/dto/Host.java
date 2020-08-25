@@ -23,11 +23,11 @@ package org.opencastproject.adopter.statistic.dto;
 
 import org.opencastproject.serviceregistry.api.HostRegistration;
 
+/**
+ * DTO that contains information about a host machine of an adopter. It's a simplified version
+ * of the HostRegistration class {@link org.opencastproject.serviceregistry.api.HostRegistration}.
+ */
 public class Host {
-
-  //================================================================================
-  // Properties
-  //================================================================================
 
   /** Amount of cores. */
   private int cores;
@@ -38,11 +38,13 @@ public class Host {
   /** The allocated memory of this host. */
   private long memory;
 
+
   public Host(HostRegistration host) {
     this.cores = host.getCores();
     this.maxLoad = host.getMaxLoad();
     this.memory = host.getMemory();
   }
+
 
   //================================================================================
   // Getter and Setter
@@ -71,4 +73,5 @@ public class Host {
   public void setMemory(long memory) {
     this.memory = memory;
   }
+
 }

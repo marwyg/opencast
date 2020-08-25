@@ -38,7 +38,7 @@ import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
 /**
- * JPA-annotated registration form object
+ * JPA-annotated registration form object.
  */
 @Entity
 @Access(AccessType.FIELD)
@@ -109,18 +109,12 @@ public class Form implements IForm {
   @Column(name = "registered")
   private boolean registered;
 
-  /**
-   * No-arg constructor needed by JPA.
-   */
+  /** No-arg constructor needed by JPA. */
   public Form() {
 
   }
 
-  /**
-   * Overwrites fields of this object.
-   *
-   * @param form The overwriting form fields.
-   */
+
   public void merge(IForm form) {
     Form f = (Form) form;
     this.organisationName = f.organisationName;

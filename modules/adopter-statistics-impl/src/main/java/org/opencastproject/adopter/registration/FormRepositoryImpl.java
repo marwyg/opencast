@@ -34,28 +34,25 @@ import javax.persistence.NoResultException;
 import javax.persistence.TypedQuery;
 
 /**
- * Repository that handles registration forms for the adopter statistics
+ * Repository that handles registration forms for the adopter statistics.
  */
 public class FormRepositoryImpl implements FormRepository {
 
-  /**
-   * The factory used to generate the entity manager.
-   */
-  protected EntityManagerFactory emf = null;
-
-  /**
-   * Logging utilities
-   */
+  /** The logger */
   private static final Logger logger = LoggerFactory.getLogger(FormRepository.class);
 
-  /**
-   * The setter for OSGI.
-   *
-   * @param emf The entity manager factory.
-   */
+  /** The factory for creating the entity manager. */
+  protected EntityManagerFactory emf = null;
+
+  /** OSGi setter for the entity manager factory. */
   void setEntityManagerFactory(EntityManagerFactory emf) {
     this.emf = emf;
   }
+
+
+  //================================================================================
+  // Methods
+  //================================================================================
 
   @Override
   public void save(IForm f) throws FormRepositoryException {
@@ -68,7 +65,7 @@ public class FormRepositoryImpl implements FormRepository {
       tx.begin();
       Form dbForm = getForm(em);
       if (dbForm == null) {
-        // There is no entry in the DB yet, so we create a UUID
+        // Null means, that there is no entry in the DB yet, so we create UUIDs for the keys.
         form.setAdopterKey(UUID.randomUUID().toString());
         form.setStatisticKey(UUID.randomUUID().toString());
         form.setDateCreated(new Date());
@@ -80,7 +77,7 @@ public class FormRepositoryImpl implements FormRepository {
       }
       tx.commit();
     } catch (Exception e) {
-      logger.error("Could not update adopter statistics registration form: {}", e.getMessage());
+      logger.error("Couldn't update the adopter statistics registration form: {}", e.getMessage());
       if (tx.isActive()) {
         tx.rollback();
       }
@@ -102,7 +99,7 @@ public class FormRepositoryImpl implements FormRepository {
       em.createNamedQuery("Form.deleteAll", Form.class).executeUpdate();
       tx.commit();
     } catch (Exception e) {
-      logger.error("Error occurred at deleting adopter registration table.");
+      logger.error("Error occurred while deleting the adopter registration table. {}", e.getMessage());
       throw new RuntimeException(e);
     } finally {
       if (em != null)
@@ -126,11 +123,10 @@ public class FormRepositoryImpl implements FormRepository {
 
   /**
    * Return the adopter registration form from db.
-   *
-   * @param em       an open entity manager
-   * @return the registration form or <code>null</code> if not found
-   * @throws FormRepositoryException if there is a problem communicating
-   *                                 with the underlying data store
+   * @param em An open entity manager.
+   * @return The registration form or <code>null</code> if not found
+   * @throws FormRepositoryException If there is a problem communicating
+   *                                 with the underlying data store.
    */
   private Form getForm(EntityManager em) throws FormRepositoryException {
     TypedQuery<Form> q = em.createNamedQuery("Form.findAll", Form.class);

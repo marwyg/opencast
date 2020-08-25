@@ -46,7 +46,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 /**
- * The REST endpoint for the adopter statistics service
+ * The REST endpoint for the adopter statistics service.
  */
 @Path("/")
 @RestService(name = "registrationController",
@@ -67,7 +67,7 @@ public class Controller {
   /** The service that provides methods for the registration */
   protected Service registrationService;
 
-  /** OSGi Setter */
+  /** OSGi setter for the registration service */
   public void setRegistrationService(Service registrationService) {
     this.registrationService = registrationService;
   }
@@ -83,36 +83,33 @@ public class Controller {
                         responseCode = HttpServletResponse.SC_INTERNAL_SERVER_ERROR) },
                         returnDescription = "GETs the adopter registration data.")
   public String getRegistrationForm() {
-
-    logger.info("Retrieving adopter registration data...");
+    logger.info("Retrieving adopter registration data.");
     return gson.toJson(registrationService.retrieveFormData());
   }
+
 
   @POST
   @Path("registration")
   @Consumes({MediaType.TEXT_PLAIN, MediaType.APPLICATION_JSON})
   @Produces(MediaType.APPLICATION_JSON)
-  @RestQuery(name = "saveregistrationform",
-             description = "Saves the adopter registration data.",
+  @RestQuery(name = "saveregistrationform", description = "Saves the adopter registration data.",
              returnDescription = "Status", reponses = {
           @RestResponse(responseCode = SC_OK,
                   description = "Adopter registration data saved."),
           @RestResponse(responseCode = SC_BAD_REQUEST,
                   description = "Couldn't save adopter registration data.")})
   public Response register(String data) {
-
-    logger.info("Saving adopter registration data...");
+    logger.info("Saving adopter registration data.");
     Form form = gson.fromJson(data, Form.class);
-
     try {
       registrationService.saveFormData(form);
     } catch (Exception e) {
       logger.error("Error while saving adopter registration data.", e);
       return Response.serverError().build();
     }
-
     return Response.ok().build();
   }
+
 
   @DELETE
   @Path("registration")
@@ -123,8 +120,7 @@ public class Controller {
                   responseCode = HttpServletResponse.SC_INTERNAL_SERVER_ERROR) },
           returnDescription = "DELETEs the adopter registration data.")
   public Response deleteRegistrationData() {
-
-    logger.info("Deleting adopter registration data...");
+    logger.info("Deleting adopter registration data.");
     try {
       registrationService.deleteFormData();
       return ok();
@@ -133,6 +129,7 @@ public class Controller {
       return serverError();
     }
   }
+
 
   @GET
   @Produces(MediaType.TEXT_HTML)

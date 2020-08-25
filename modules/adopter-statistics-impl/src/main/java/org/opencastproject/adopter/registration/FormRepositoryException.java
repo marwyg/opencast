@@ -22,22 +22,19 @@
 package org.opencastproject.adopter.registration;
 
 /**
- * Exception that will be thrown when errors occurs in the form repository.
+ * Exception that will be thrown when an errors occurs in the form repository.
  */
 public class FormRepositoryException extends RuntimeException {
 
   private static final long serialVersionUID = 7482018840067182789L;
 
-  /**
-   * Create exception.
-   */
+  /** The exception constructor. */
   public FormRepositoryException() {
   }
 
   /**
-   * Create exception with a message.
-   *
-   * @param message
+   * Creates an exception with a message.
+   * @param message An error message.
    */
   public FormRepositoryException(String message) {
     super(message);
@@ -45,8 +42,7 @@ public class FormRepositoryException extends RuntimeException {
 
   /**
    * Create exception with a cause.
-   *
-   * @param cause
+   * @param cause The exception cause.
    */
   public FormRepositoryException(Throwable cause) {
     super(cause);
@@ -54,9 +50,8 @@ public class FormRepositoryException extends RuntimeException {
 
   /**
    * Create exception with a message and a cause.
-   *
-   * @param message
-   * @param cause
+   * @param message An error message.
+   * @param cause The exception cause.
    */
   public FormRepositoryException(String message, Throwable cause) {
     super(message, cause);

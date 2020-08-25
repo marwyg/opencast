@@ -26,7 +26,9 @@ import org.opencastproject.adopter.registration.Form;
 import com.google.gson.Gson;
 import com.google.gson.annotations.SerializedName;
 
-/** DTO for adopters general data. */
+/**
+ * DTO for the general data of an adopter.
+ */
 public class GeneralData {
 
   /** JSON parser */
@@ -76,6 +78,11 @@ public class GeneralData {
   /** The E-Mail address of the adopter. */
   private final String email;
 
+
+  //================================================================================
+  // Constructor and methods
+  //================================================================================
+
   public GeneralData(Form adopterRegistrationForm) {
     this.adopterKey = adopterRegistrationForm.getAdopterKey();
     this.organisationName = adopterRegistrationForm.getOrganisationName();
@@ -97,6 +104,7 @@ public class GeneralData {
   public String jsonify() {
     return gson.toJson(this);
   }
+
 
   //================================================================================
   // Getter and Setter

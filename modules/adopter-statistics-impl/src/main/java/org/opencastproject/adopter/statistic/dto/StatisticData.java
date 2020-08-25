@@ -39,11 +39,14 @@ public class StatisticData {
   // Properties
   //================================================================================
 
-  /** Every adopter has his own key, so when the data of different adopters will be
+  /**
+   * A key that's unique for every adopter.
+   *
+   * Every adopter has his own statistic key, so when the data of different adopters will be
    * collected, we can use this as an ID and identify every statistic data entry
-   * later on (in a database for example) to update existing entries.
-   * We don't use the adopter key at this point (from the 'GeneralData' class), because
-   * we are not allowed to associate the statistic data with the adopter.
+   * later on to update existing entries in the database.
+   * We don't use the adopter key from {@link org.opencastproject.adopter.statistic.dto.GeneralData} at this point,
+   * because we are not allowed to associate the statistic data with the adopter.
    */
   @SerializedName("statistic_key")
   private String statisticKey;
@@ -64,10 +67,7 @@ public class StatisticData {
   @SerializedName("user_count")
   private long userCount;
 
-  /**
-   * This list represents the number of hosts of an adopter.
-   * Each list entry contains the amount of processor cores of a host.
-   */
+  /** The hosts of an adopter.*/
   private List<Host> hosts;
 
 
@@ -77,7 +77,7 @@ public class StatisticData {
 
   /**
    * A StatisticData instance should always have a unique key.
-   * @param statisticKey The unique key that identifies
+   * @param statisticKey The unique key that identifies a statistic entry.
    */
   public StatisticData(String statisticKey) {
     this.statisticKey = statisticKey;

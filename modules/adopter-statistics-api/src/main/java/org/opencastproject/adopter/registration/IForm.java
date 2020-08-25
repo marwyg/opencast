@@ -26,6 +26,10 @@ package org.opencastproject.adopter.registration;
  */
 public interface IForm {
 
+  /**
+   * Overwrites the fields of this object with the data from another object of the same type.
+   * @param form The form with the data for merging.
+   */
   void merge(IForm form);
 
 }

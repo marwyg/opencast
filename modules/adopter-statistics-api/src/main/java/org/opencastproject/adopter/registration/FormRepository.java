@@ -22,19 +22,14 @@
 package org.opencastproject.adopter.registration;
 
 /**
- * API for the repository that handles registration
- * forms for the adopter statistics.
+ * API for the repository that handles registration forms for the adopter statistics.
  */
 public interface FormRepository {
 
-  /**
-   * Saves the registration form data.
-   */
+  /** Saves the registration form data. */
   void save(IForm form);
 
-  /**
-   * Deletes the registration entry.
-   */
+  /** Deletes the registration entry. */
   void delete();
 
   /**

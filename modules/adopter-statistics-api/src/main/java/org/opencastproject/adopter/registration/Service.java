@@ -27,21 +27,18 @@ package org.opencastproject.adopter.registration;
 public interface Service {
 
   /**
-   * Saves the the submitted form.
-   *
+   * Saves the submitted registration form.
    * @param form The adopter registration form.
    */
   void saveFormData(IForm form);
 
   /**
-   * Retrieves the adopter registration form from db.
-   *
-   * @return The form from db.
+   * Loads the adopter registration form.
+   * @return The adopter registration form.
    */
   IForm retrieveFormData();
 
-  /**
-   * Deletes the adopter registration form from db.
-   */
+  /** Deletes the registration form of the adopter. */
   void deleteFormData();
+
 }

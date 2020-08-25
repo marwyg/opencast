@@ -32,7 +32,9 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 
-/** Contains methods for sending statistic data via rest. */
+/**
+ * Contains methods for sending statistic data via rest.
+ */
 public class Sender {
 
   /** The logger */
@@ -41,43 +43,42 @@ public class Sender {
   /** The base URL for the external server where the data will be send to */
   private String baseUrl;
 
-  /** The suffixes for the base statistic server URL
-   * it determines to which REST endpoint the data will be sent */
+  // The suffixes for the base statistic server URL
+  // they determine to which REST endpoint the data will be sent
   private static final String GENERAL_DATA_URL_SUFFIX = "adopter";
   private static final String STATISTIC_URL_SUFFIX = "statistic";
-
 
   //================================================================================
   // Constructor
   //================================================================================
 
   /**
-   * Simple Constructor that require the URL of the statistic server.
+   * Simple Constructor that requires the URL of the statistic server.
    * @param statisticServerBaseUrl The URL prefix of the statistic server.
    */
   public Sender(String statisticServerBaseUrl) {
-    if (!statisticServerBaseUrl.endsWith("/"))
+    if (!statisticServerBaseUrl.endsWith("/")) {
       statisticServerBaseUrl += "/";
+    }
     this.baseUrl = statisticServerBaseUrl;
   }
-
 
   //================================================================================
   // Methods
   //================================================================================
 
-  /***
-   * Executes the 'send' method with the proper REST URL prefix.
-   * @param json The data to be sent.
+  /**
+   * Executes the 'send' method with the proper REST URL suffix.
+   * @param json The data which shall be sent.
    * @throws Exception General exception that can occur while sending the data.
    */
   public void sendGeneralData(String json) throws Exception {
     send(json, GENERAL_DATA_URL_SUFFIX);
   }
 
-  /***
-   * Executes the 'send' method with the proper REST URL prefix.
-   * @param json The data to be sent.
+  /**
+   * Executes the 'send' method with the proper REST URL suffix.
+   * @param json The data which shall be sent.
    * @throws Exception General exception that can occur while sending the data.
    */
   public void sendStatistics(String json) throws Exception {
@@ -87,6 +88,7 @@ public class Sender {
   /**
    * Sends the JSON string via post request.
    * @param json The JSON string that has to be send.
+   * @param urlSuffix The url suffix determines to which rest endpoint the data will be send.
    * @throws Exception General exception that can occur while processing the POST request.
    */
   private void send(String json, String urlSuffix) throws Exception {
