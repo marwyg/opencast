@@ -124,7 +124,7 @@ public class ScheduledDataCollector extends TimerTask {
     // be executed at the time, that has been set in the 'custom.properties' file
     String sendTimeStr = ctx.getProperty(PROP_KEY_STATISTIC_SEND_TIME); // scheduler execution time
     int timeToSend = NumberUtils.createInteger(sendTimeStr);
-    if(timeToSend < 0 || timeToSend > 23) {
+    if (timeToSend < 0 || timeToSend > 23) {
       throw new NumberFormatException("The number should be between 0 and 23 inclusive.");
     }
     int currentHour = NumberUtils.createInteger(new SimpleDateFormat("H").format(new Date()));
