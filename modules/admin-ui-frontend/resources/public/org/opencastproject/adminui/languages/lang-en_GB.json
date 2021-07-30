@@ -555,6 +555,8 @@
                   "CLASS_HANDOUT_NOTES": "Class handout notes",
                   "CAPTIONS_DFXP": "Captions DFXP",
                   "CAPTIONS_WEBVTT": "Captions WebVTT",
+                  "CAPTIONS_WEBVTT_EN": "Captions (english)",
+                  "CAPTIONS_WEBVTT_DE": "Captions (german)",
                   "PREVIEW_IMAGE": "Preview image",
                   "SMIL": "Smil catalog",
                   "TRACK_PARTS": "Track parts"
