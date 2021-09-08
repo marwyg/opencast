@@ -23,7 +23,9 @@ package org.opencastproject.speechtotext.remote;
 
 import org.opencastproject.job.api.Job;
 import org.opencastproject.job.api.JobParser;
+import org.opencastproject.security.api.TrustedHttpClient;
 import org.opencastproject.serviceregistry.api.RemoteBase;
+import org.opencastproject.serviceregistry.api.ServiceRegistry;
 import org.opencastproject.speechtotext.api.SpeechToTextService;
 import org.opencastproject.speechtotext.api.SpeechToTextServiceException;
 
@@ -33,6 +35,7 @@ import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.message.BasicNameValuePair;
 import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -89,4 +92,27 @@ public class SpeechToTextServiceRemoteImpl extends RemoteBase implements SpeechT
       closeConnection(response);
     }
   }
+
+  /**
+   * Sets the trusted http client
+   *
+   * @param client
+   */
+  @Override
+  @Reference(name = "trustedHttpClient")
+  public void setTrustedHttpClient(TrustedHttpClient client) {
+    this.client = client;
+  }
+
+  /**
+   * Sets the remote service manager.
+   *
+   * @param remoteServiceManager
+   */
+  @Override
+  @Reference(name = "remoteServiceManager")
+  public void setRemoteServiceManager(ServiceRegistry remoteServiceManager) {
+    this.remoteServiceManager = remoteServiceManager;
+  }
+
 }
