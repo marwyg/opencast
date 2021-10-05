@@ -195,7 +195,7 @@ public class SpeechToTextWorkflowOperationHandler extends AbstractWorkflowOperat
 
       subtitleMediaPackage.setIdentifier(id);
       subtitleMediaPackage.setURI(uri);
-      MediaPackageElementFlavor targetFlavor = track.getFlavor().applyTo(tagsAndFlavors.getSingleTargetFlavor());
+      MediaPackageElementFlavor targetFlavor = tagsAndFlavors.getSingleTargetFlavor().applyTo(track.getFlavor());
       subtitleMediaPackage.setFlavor(targetFlavor);
 
       List<String> targetTags = tagsAndFlavors.getTargetTags();
