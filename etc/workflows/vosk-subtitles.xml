@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<definition xmlns="http://workflow.opencastproject.org">
+
+  <id>vosk-subtitles</id>
+  <title>Create Subtitles with Vosk</title>
+  <tags>
+    <tag>archive</tag>
+  </tags>
+  <description/>
+  <displayOrder>10</displayOrder>
+  <configuration_panel>
+    <![CDATA[
+      <div id="workflow-configuration" style="padding-top: 20px">
+        <fieldset>
+          <div id="stt-flavor-div">
+            <input
+              id="stt_flavor"
+              name="stt_flavor"
+              type="text"
+              class="configField"
+              style="width: 200px; margin-right: 10px"
+              value="*"
+              />
+              <label for="stt_flavor">Flavor</label>
+          </div>
+          <div id="stt-subflavor-div" style="padding-top: 20px">
+            <input
+              id="stt_subFlavor"
+              name="stt_subFlavor"
+              type="text"
+              maxlength="255"
+              class="configField"
+              style="width: 200px; margin-right: 10px"
+              value="presenter-source"
+            />
+            <label for="numberOfEvents">SubFlavor</label>
+          </div>
+          <div id="stt-language-div" style="padding-top: 20px">
+            <input
+              id="language"
+              name="language"
+              type="text"
+              class="configField"
+              style="width: 200px; margin-right: 10px"
+              value="ger"
+              />
+              <label for="stt_language">Language</label>
+          </div>
+          <div id="publish-div" style="padding-top: 20px">
+            <input id="publish" name="publish" type="checkbox" class="configField" value="true" checked=checked />
+            <label for="publish">publish</label>
+          </div>
+        </fieldset>
+      </div>
+    ]]>
+  </configuration_panel>
+
+  <operations>
+
+    <!-- Generate subtitles -->
+
+    <operation
+      id="speechtotext"
+      fail-on-error="true"
+      exception-handler-workflow="partial-error"
+      description="Generate subtitles with Vosk">
+      <configurations>
+        <configuration key="source-flavor">${stt_flavor}/${stt_subFlavor}</configuration>
+        <configuration key="target-flavor">captions/vtt+${language}</configuration>
+        <configuration key="target-element">attachment</configuration>
+        <configuration key="target-tags">archive,subtitle,engage-download</configuration>
+        <configuration key="language-code">${language}</configuration>
+      </configurations>
+    </operation>
+
+    <!-- Publish to engage player -->
+
+    <operation
+            id="publish-engage"
+            if="${publish}"
+            max-attempts="2"
+            fail-on-error="true"
+            exception-handler-workflow="partial-error"
+            description="Publishing to Engage">
+      <configurations>
+        <configuration key="download-source-flavors">captions/vtt+${language}</configuration>
+        <configuration key="strategy">merge</configuration>
+        <configuration key="check-availability">false</configuration>
+      </configurations>
+    </operation>
+
+    <!-- Archive the current state of the media package -->
+
+    <operation
+            id="snapshot"
+            fail-on-error="true"
+            exception-handler-workflow="partial-error"
+            description="Archiving">
+      <configurations>
+        <configuration key="source-flavors">captions/vtt+${language}</configuration>
+        <configuration key="source-tags">archive</configuration>
+      </configurations>
+    </operation>
+
+    <!-- Clean up work artifacts -->
+
+    <operation
+        id="cleanup"
+        fail-on-error="false"
+        description="Remove temporary processing artifacts">
+      <configurations>
+        <configuration key="delete-external">true</configuration>
+        <!-- FixMe Don't clean up ACLs until workflow service no longer looks for them in the WFR. -->
+        <configuration key="preserve-flavors">security/*</configuration>
+      </configurations>
+    </operation>
+
+  </operations>
+
+  <state-mappings>
+    <state-mapping state="running">EVENTS.EVENTS.STATUS.PROCESSING</state-mapping>
+    <state-mapping state="failing">EVENTS.EVENTS.STATUS.PROCESSING_FAILURE</state-mapping>
+  </state-mappings>
+
+</definition>
