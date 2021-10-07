@@ -40,7 +40,7 @@ Operation Examples
     <configuration key="source-flavor">*/source</configuration>
     <configuration key="target-flavor">*/subtitle</configuration>
     <configuration key="target-element"> attachment | track </configuration>
-    <configuration key="target-tag">subtitle</configuration>
+    <configuration key="target-tags">subtitle</configuration>
     <configuration key="language-code">ger</configuration>
   </configurations>
 </operation>
