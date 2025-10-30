@@ -115,10 +115,15 @@ public class PartialImportWorkflowOperationHandler extends AbstractWorkflowOpera
   private static final String TARGET_PRESENTATION_FLAVOR = "target-presentation-flavor";
 
   private static final String CONCAT_ENCODING_PROFILE = "concat-encoding-profile";
+  private static final String AUDIO_MERGE_ENCODING_PROFILE = "audio-merge-encoding-profile";
+
   private static final String CONCAT_OUTPUT_FRAMERATE = "concat-output-framerate";
   private static final String TRIM_ENCODING_PROFILE = "trim-encoding-profile";
   private static final String FORCE_ENCODING_PROFILE = "force-encoding-profile";
   private static final String PREENCODE_ENCODING_PROFILE = "preencode-encoding-profile";
+
+  /** Name of the muxing encoding profile */
+  private static final String MUX_AV_PROFILE = "mux-av.copy";
 
   private static final String FORCE_ENCODING = "force-encoding";
   private static final String REQUIRED_EXTENSIONS = "required-extensions";
@@ -218,6 +223,7 @@ public class PartialImportWorkflowOperationHandler extends AbstractWorkflowOpera
     final Opt<String> presentationFlavor = getOptConfig(operation, SOURCE_PRESENTATION_FLAVOR);
     final MediaPackageElementFlavor smilFlavor = MediaPackageElementFlavor.parseFlavor(getConfig(operation, SOURCE_SMIL_FLAVOR));
     final String concatEncodingProfile = getConfig(operation, CONCAT_ENCODING_PROFILE);
+    final String audioMergeEncodingProfile = getConfig(operation, AUDIO_MERGE_ENCODING_PROFILE);
     final Opt<String> concatOutputFramerate = getOptConfig(operation, CONCAT_OUTPUT_FRAMERATE);
     final String trimEncodingProfile = getConfig(operation, TRIM_ENCODING_PROFILE);
     final MediaPackageElementFlavor targetPresenterFlavor = parseTargetFlavor(
@@ -246,6 +252,11 @@ public class PartialImportWorkflowOperationHandler extends AbstractWorkflowOpera
     final EncodingProfile concatProfile = composerService.getProfile(concatEncodingProfile);
     if (concatProfile == null) {
       throw new WorkflowOperationException("Concat encoding profile '" + concatEncodingProfile + "' was not found");
+    }
+
+    final EncodingProfile audioMergeProfile = composerService.getProfile(audioMergeEncodingProfile);
+    if (audioMergeProfile == null)  {
+      throw new WorkflowOperationException("Audio Merge encoding profile '" + audioMergeEncodingProfile + "' was not found");
     }
 
     float outputFramerate = -1.0f;
@@ -279,11 +290,6 @@ public class PartialImportWorkflowOperationHandler extends AbstractWorkflowOpera
       originalTracks.add(t);
     }
 
-    // Encode all tracks to same format to enable use of ffmpeg concat-demuxer
-    logger.info("Starting preencoding");
-    originalTracks = preencode(preencodeProfile, originalTracks);
-
-
     // flavor_type -> job
     final Map<String, Job> jobs = new HashMap<String, Job>();
     // get SMIL catalog
@@ -300,62 +306,125 @@ public class PartialImportWorkflowOperationHandler extends AbstractWorkflowOpera
     for (int i = 0; i < sequences.getLength(); i++) {
       final SMILElement item = (SMILElement) sequences.item(i);
 
-      for (final String mediaType : new String[] { NODE_TYPE_AUDIO, NODE_TYPE_VIDEO }) {
-        final List<Track> tracks = new ArrayList<Track>();
-        final VCell<String> sourceType = VCell.cell(EMPTY_VALUE);
+      List<Track> videoTracks = new ArrayList<>();
+      final List<Track> audioTracks = new ArrayList<>();
+      final List<Long> audioStartTimes = new ArrayList<>();
+      // this list will include the videos that has to be conatinated and the merged audio track
+      // the audio will not simply be concatinated and will be merged beforehand
+      // this way, audio snippets can also overlap
+      Track mergedAudioTrack = null;
+      final VCell<String> sourceType = VCell.cell(EMPTY_VALUE);
 
-        final long position = processChildren(0, tracks, item.getChildNodes(), originalTracks, sourceType, mediaType,
-                elementsToClean, operationId);
+      // first process audio
+      // ----------------------------------------------------------------------------------------------
 
-        if (tracks.isEmpty()) {
-          logger.debug("The tracks list was empty.");
-          continue;
+      Job audioMergeJob;
+
+      final long lastAudioPosition = processAudioTracks(0, audioTracks, audioStartTimes, item.getChildNodes(),
+          originalTracks, sourceType, elementsToClean, operationId);
+      if (lastAudioPosition < trackDurationInMs) {
+        final double extendingTime = (trackDurationInMs - lastAudioPosition) / 1000d;
+        if (extendingTime > 0) {
+          logger.info("Extending {} audio track end by {} seconds with silent audio", sourceType.get(), extendingTime);
+          audioTracks.add(getSilentAudio(extendingTime, elementsToClean, operationId));
+          audioStartTimes.add(lastAudioPosition);
         }
-        final Track lastTrack = tracks.get(tracks.size() - 1);
+      }
 
-        if (position < trackDurationInMs) {
-          final double extendingTime = (trackDurationInMs - position) / 1000d;
-          if (extendingTime > 0) {
-            if (!lastTrack.hasVideo()) {
-              logger.info("Extending {} audio track end by {} seconds with silent audio", sourceType.get(),
-                      extendingTime);
-              tracks.add(getSilentAudio(extendingTime, elementsToClean, operationId));
-            } else {
-              logger.info("Extending {} track end with last image frame by {} seconds", sourceType.get(), extendingTime);
-              Attachment tempLastImageFrame = extractLastImageFrame(lastTrack, elementsToClean);
-              tracks.add(createVideoFromImage(tempLastImageFrame, extendingTime, elementsToClean));
-            }
-          }
-        }
-
-        if (tracks.size() < 2) {
-          logger.debug("There were less than 2 tracks, copying track...");
-          if (sourceType.get().startsWith(PRESENTER_KEY)) {
-            createCopyOfTrack(mediaPackage, tracks.get(0), targetPresenterFlavor);
-          } else if (sourceType.get().startsWith(PRESENTATION_KEY)) {
-            createCopyOfTrack(mediaPackage, tracks.get(0), targetPresentationFlavor);
-          } else {
-            logger.warn("Can't handle unkown source type '{}' for unprocessed track", sourceType.get());
-          }
-          continue;
-        }
-
-        for (final Track t : tracks) {
-          if (!t.hasVideo() && !t.hasAudio()) {
-            logger.error("No audio or video stream available in the track with flavor {}! {}", t.getFlavor(), t);
-            throw new WorkflowOperationException("No audio or video stream available in the track " + t.toString());
-          }
-        }
-
-        if (sourceType.get().startsWith(PRESENTER_KEY)) {
-          logger.info("Concatenating {} track", PRESENTER_KEY);
-          jobs.put(sourceType.get(), startConcatJob(concatProfile, tracks, outputFramerate, forceDivisible));
-        } else if (sourceType.get().startsWith(PRESENTATION_KEY)) {
-          logger.info("Concatenating {} track", PRESENTATION_KEY);
-          jobs.put(sourceType.get(), startConcatJob(concatProfile, tracks, outputFramerate, forceDivisible));
+      if (audioTracks.size() > 1) {
+        if (sourceType.get().startsWith(PRESENTER_KEY) || sourceType.get().startsWith(PRESENTATION_KEY)) {
+          logger.info("Merging {} audio tracks", sourceType.get());
+          mergedAudioTrack = mergeAudioTracks(audioMergeProfile, audioStartTimes, audioTracks, mergedAudioTrack);
         } else {
           logger.warn("Can't handle unknown source type '{}'!", sourceType.get());
         }
+      } else {
+        if (audioTracks.size() == 1) {
+          logger.info("Found only one audio track, copying it");
+          mergedAudioTrack = audioTracks.iterator().next();
+        } else {
+          logger.warn("No audio track found");
+        }
+      }
+
+      // now process video tracks
+      // --------------------------------------------------------------------------------------
+
+      final long lastVideoPosition = processVideoTracks(0, videoTracks, item.getChildNodes(), originalTracks, sourceType, elementsToClean, operationId);
+
+      if (videoTracks.isEmpty()) {
+        logger.debug("The video tracks list was empty.");
+        continue;
+      }
+      final Track lastTrack = videoTracks.get(videoTracks.size() - 1);
+
+      if (lastVideoPosition < trackDurationInMs) {
+        final double extendingTime = (trackDurationInMs - lastVideoPosition) / 1000d;
+        if (extendingTime > 0) {
+          logger.info("Extending {} track end with last image frame by {} seconds", sourceType.get(), extendingTime);
+          Attachment tempLastImageFrame = extractLastImageFrame(lastTrack, elementsToClean);
+          videoTracks.add(createVideoFromImage(tempLastImageFrame, extendingTime, elementsToClean));
+        }
+      }
+
+      if (videoTracks.size() < 2) {
+        logger.debug("There were less than 2 tracks, copying track...");
+        if (sourceType.get().startsWith(PRESENTER_KEY)) {
+          createCopyOfTrack(mediaPackage, videoTracks.get(0), targetPresenterFlavor);
+        } else if (sourceType.get().startsWith(PRESENTATION_KEY)) {
+          createCopyOfTrack(mediaPackage, videoTracks.get(0), targetPresentationFlavor);
+        } else {
+          logger.warn("Can't handle unknown source type '{}' for unprocessed track", sourceType.get());
+        }
+        continue;
+      }
+
+      // Now run the concat process for the video tracks
+      // -----------------------------------------------------------------------------------------
+
+      for (final Track t : videoTracks) {
+        if (!t.hasVideo() && !t.hasAudio()) {
+          logger.error("No audio or video stream available in the track with flavor {}! {}", t.getFlavor(), t);
+          throw new WorkflowOperationException("No audio or video stream available in the track " + t.toString());
+        }
+      }
+
+      if (sourceType.get().startsWith(PRESENTER_KEY) || sourceType.get().startsWith(PRESENTATION_KEY)) {
+
+        // Encode all tracks to same format to enable use of ffmpeg concat-demuxer
+        logger.info("Starting preencoding to enable use of ffmpeg concat-demuxer");
+        videoTracks = preencode(preencodeProfile, videoTracks);
+
+        Track concatVideoTrack = null;
+        try {
+          logger.info("Concatenating {} video tracks", sourceType.get());
+          Job concatJob = startConcatJob(concatProfile, videoTracks, outputFramerate, forceDivisible);
+          if (!JobUtil.waitForJob(serviceRegistry, concatJob).isSuccess()) {
+            throw new WorkflowOperationException("Video concat job didn't returned successfully.");
+          }
+          final Opt<Job> videoConcatJobResult = JobUtil.update(serviceRegistry, concatJob);
+          if (videoConcatJobResult.isSome()) {
+            final String concatPayload = videoConcatJobResult.get().getPayload();
+            if (concatPayload != null) {
+              concatVideoTrack = (Track) MediaPackageElementParser.getFromXml(concatPayload);
+            }
+          }
+        } catch (Exception e) {
+          throw e;
+        }
+
+        if (concatVideoTrack == null) {
+          throw new WorkflowOperationException("Concat video tracks are null");
+        }
+
+        // Now combine concatinated video track with the merged audio
+
+        logger.info("Muxing concat video track with merged audio");
+        EncodingProfile profile = composerService.getProfile(MUX_AV_PROFILE);
+        jobs.put(sourceType.get(), composerService.mux(concatVideoTrack, mergedAudioTrack, profile.getIdentifier()));
+
+      } else {
+        logger.warn("Can't handle unknown source type '{}'!", sourceType.get());
       }
     }
 
@@ -365,7 +434,7 @@ public class PartialImportWorkflowOperationHandler extends AbstractWorkflowOpera
         throw new WorkflowOperationException("One of the concat jobs did not complete successfully");
       }
     } else {
-      logger.info("No concatenating needed for presenter and presentation tracks, took partial source elements");
+      logger.info("No muxing needed for presenter and presentation tracks, took partial source elements");
     }
 
     // All the jobs have passed, let's update the media package
@@ -452,6 +521,29 @@ public class PartialImportWorkflowOperationHandler extends AbstractWorkflowOpera
     final WorkflowOperationResult result = createResult(mediaPackage, Action.CONTINUE, queueTime);
     logger.debug("Partial import operation completed");
     return result;
+  }
+
+  private Track mergeAudioTracks(EncodingProfile audioMergeProfile, List<Long> audioStartTimes, List<Track> audioTracks,
+      Track mergedAudioTrack)
+      throws EncoderException, MediaPackageException, WorkflowOperationException, ServiceRegistryException {
+    Job audioMergeJob;
+    audioMergeJob = composerService.mergeAudioTracks(audioMergeProfile.getIdentifier(), audioStartTimes, audioTracks);
+
+    try {
+      if (!JobUtil.waitForJob(serviceRegistry, audioMergeJob).isSuccess()) {
+        throw new WorkflowOperationException("Audio merge job didn't returned successfully.");
+      }
+      final Opt<Job> audioMergeJobResult = JobUtil.update(serviceRegistry, audioMergeJob);
+      if (audioMergeJobResult.isSome()) {
+        final String mergeJobPayload = audioMergeJobResult.get().getPayload();
+        if (mergeJobPayload != null) {
+          mergedAudioTrack = (Track) MediaPackageElementParser.getFromXml(mergeJobPayload);
+        }
+      }
+    } catch (Exception e) {
+      throw e;
+    }
+    return mergedAudioTrack;
   }
 
   protected long checkForEncodeToStandard(MediaPackage mediaPackage, boolean forceEncoding,
@@ -933,14 +1025,49 @@ public class PartialImportWorkflowOperationHandler extends AbstractWorkflowOpera
     return trimJob.getQueueTime();
   }
 
-  private long processChildren(long position, List<Track> tracks, NodeList children, List<Track> originalTracks,
-          VCell<String> type, String mediaType, List<MediaPackageElement> elementsToClean, Long operationId)
-          throws EncoderException, MediaPackageException, WorkflowOperationException, NotFoundException, IOException {
+  private long processAudioTracks(long position, List<Track> audioTracks, List<Long> audioStartTimes, NodeList children,
+      List<Track> originalTracks, VCell<String> type, List<MediaPackageElement> elementsToClean, Long operationId)
+      throws EncoderException, MediaPackageException, WorkflowOperationException, NotFoundException, IOException {
+
+    String mediaType = NODE_TYPE_AUDIO;
     for (int j = 0; j < children.getLength(); j++) {
       Node item = children.item(j);
+
       if (item.hasChildNodes()) {
-        position = processChildren(position, tracks, item.getChildNodes(), originalTracks, type, mediaType,
-                elementsToClean, operationId);
+        position = processAudioTracks(position, audioTracks, audioStartTimes, item.getChildNodes(), originalTracks,
+            type, elementsToClean, operationId);
+      } else {
+        SMILMediaElement e = (SMILMediaElement) item;
+        if (mediaType.equals(e.getNodeName())) {
+          Track audioTrack;
+          try {
+            audioTrack = getFromOriginal(e.getId(), originalTracks, type);
+          } catch (IllegalStateException exception) {
+            logger.debug("Skipping smil entry, reason: " + exception.getMessage());
+            continue;
+          }
+          double beginInSeconds = e.getBegin().item(0).getResolvedOffset();
+          long beginInMs = Math.round(beginInSeconds * 1000d);
+          audioStartTimes.add(beginInMs);
+          audioTracks.add(audioTrack);
+          position = beginInMs + Math.round(e.getDur() * 1000f);
+        }
+      }
+    }
+    return position;
+  }
+
+  private long processVideoTracks(long position, List<Track> videoTracks, NodeList children, List<Track> originalTracks,
+      VCell<String> type, List<MediaPackageElement> elementsToClean, Long operationId)
+      throws EncoderException, MediaPackageException, WorkflowOperationException, NotFoundException, IOException {
+
+    String mediaType = NODE_TYPE_VIDEO;
+    for (int j = 0; j < children.getLength(); j++) {
+      Node item = children.item(j);
+
+      if (item.hasChildNodes()) {
+        position = processVideoTracks(position, videoTracks, item.getChildNodes(), originalTracks, type,
+            elementsToClean, operationId);
       } else {
         SMILMediaElement e = (SMILMediaElement) item;
         if (mediaType.equals(e.getNodeName())) {
@@ -957,32 +1084,21 @@ public class PartialImportWorkflowOperationHandler extends AbstractWorkflowOpera
           if (beginInMs > position) {
             double positionInSeconds = position / 1000d;
             if (position == 0) {
-              if (NODE_TYPE_AUDIO.equals(e.getNodeName())) {
-                logger.info("Extending {} audio track start by {} seconds silent audio", type.get(), beginInSeconds);
-                tracks.add(getSilentAudio(beginInSeconds, elementsToClean, operationId));
-              } else {
-                logger.info("Extending {} track start image frame by {} seconds", type.get(), beginInSeconds);
-                Attachment tempFirstImageFrame = extractImage(track, 0, elementsToClean);
-                tracks.add(createVideoFromImage(tempFirstImageFrame, beginInSeconds, elementsToClean));
-              }
+              logger.info("Extending {} track start image frame by {} seconds", type.get(), beginInSeconds);
+              Attachment tempFirstImageFrame = extractImage(track, 0, elementsToClean);
+              videoTracks.add(createVideoFromImage(tempFirstImageFrame, beginInSeconds, elementsToClean));
               position += beginInMs;
             } else {
               double fillTime = (beginInMs - position) / 1000d;
-              if (NODE_TYPE_AUDIO.equals(e.getNodeName())) {
-                logger.info("Fill {} audio track gap from {} to {} with silent audio", type.get(),
-                        Double.toString(positionInSeconds), Double.toString(beginInSeconds));
-                tracks.add(getSilentAudio(fillTime, elementsToClean, operationId));
-              } else {
-                logger.info("Fill {} track gap from {} to {} with image frame",
-                        type.get(), Double.toString(positionInSeconds), Double.toString(beginInSeconds));
-                Track previousTrack = tracks.get(tracks.size() - 1);
-                Attachment tempLastImageFrame = extractLastImageFrame(previousTrack, elementsToClean);
-                tracks.add(createVideoFromImage(tempLastImageFrame, fillTime, elementsToClean));
-              }
+              logger.info("Fill {} track gap from {} to {} with image frame", type.get(),
+                  Double.toString(positionInSeconds), Double.toString(beginInSeconds));
+              Track previousTrack = videoTracks.get(videoTracks.size() - 1);
+              Attachment tempLastImageFrame = extractLastImageFrame(previousTrack, elementsToClean);
+              videoTracks.add(createVideoFromImage(tempLastImageFrame, fillTime, elementsToClean));
               position = beginInMs;
             }
           }
-          tracks.add(track);
+          videoTracks.add(track);
           position += Math.round(e.getDur() * 1000f);
         }
       }
