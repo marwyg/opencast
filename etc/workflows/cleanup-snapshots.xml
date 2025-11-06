@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<definition xmlns="http://workflow.opencastproject.org">
+
+  <id>alteversionenloeschen</id>
+  <title>Alte Snapshotversionen löschen</title>
+    <tags>
+      <tag>archive</tag>
+    </tags>
+  <description>
+   Alle Snapshotversionen bis auf die letze werden gelöscht.
+  </description>
+  <configuration_panel/>
+ <operations>
+
+
+ <!-- Copy last mediapackage version to workspace -->
+    <operation
+      id="ingest-download"
+      exception-handler-workflow="partial-error"
+      description="Ingesting external elements">
+      <configurations>
+        <configuration key="delete-external">false</configuration>
+      </configurations>
+    </operation>
+
+    <operation
+      id="snapshot"
+      fail-on-error="true"
+      exception-handler-workflow="partial-error"
+      description="Archiving">
+      <configurations>
+              <configuration key="source-flavors">dublincore/*,security/*,*/delivery</configuration>
+         <configuration key="source-tags">archive</configuration>
+      </configurations>
+    </operation>
+
+
+
+    <!-- Delete every but the last snapshot -->
+    <operation
+      id="asset-delete"
+      fail-on-error="true"
+      exception-handler-workflow="partial-error"
+      description="Delete every older Snapshot from AssetManager">
+      <configurations>
+        <configuration key="keep-last-snapshot">true</configuration>
+      </configurations>
+    </operation>
+
+    <!-- Clean up work artifacts -->
+    <operation
+        id="cleanup"
+        fail-on-error="false"
+        description="Remove temporary processing artifacts">
+      <configurations>
+        <configuration key="delete-external">false</configuration>
+        <!-- FixMe Don't clean up ACLs until workflow service no longer looks for them in the WFR. -->
+        <configuration key="preserve-flavors">security/*</configuration>
+      </configurations>
+    </operation>
+
+  </operations>
+
+</definition>

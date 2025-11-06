@@ -1,0 +1,46 @@
+---
+
+id: copy-prepared-source
+title: prepared nach source kopieren
+tags:
+  - archive
+
+description: |-
+
+displayOrder: 100
+state-mappings:
+  - state: running
+    value: EVENTS.EVENTS.STATE_MAPPING.COPY
+  - state: failing
+    value: EVENTS.EVENTS.STATE_MAPPING.COPY
+
+operations:
+
+  - id: analyze-tracks
+    fail-on-error: true
+    exception-handler-workflow: partial-error
+    description: Analyze tracks in media package and set control variables
+    configurations:
+      - source-flavor: "*/source"
+
+  - id: clone
+    if: (NOT (${presentation_source_media} OR ${presenter_source_media}))
+    exception-handler-workflow: partial-error
+    description: copy prepared media to source
+    configurations:
+      - source-flavor: "*/prepared"
+      - source-tags: archive
+      - target-flavor: "*/source"
+
+  - id: snapshot
+    exception-handler-workflow: partial-error
+    description: Archiving
+    configurations:
+      - source-tags: archive
+
+  - id: cleanup
+    fail-on-error: false
+    description: Remove temporary processing artifacts
+    configurations:
+      - delete-external: false
+      - preserve-flavors: "security/*"

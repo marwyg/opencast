@@ -1,0 +1,54 @@
+---
+
+id: uos-new-part-video
+title: Videokopie erstellen
+description: Erstellt eine Kopie des geschnittenen Videos
+tags:
+  - archive
+
+displayOrder: 900
+state-mappings:
+  - state: running
+    value: EVENTS.EVENTS.STATE_MAPPING.DUPLICATE
+  - state: failing
+    value: EVENTS.EVENTS.STATE_MAPPING.DUPLICATE
+
+operations:
+  - id: clone
+    exception-handler-workflow: partial-error
+    description: Creating working copy of the cutting information
+    configurations:
+      - source-flavor: smil/cutting
+      - target-flavor: smil/tmp
+
+  - id: editor
+    exception-handler-workflow: partial-error
+    description: Cutting the recording according to the edit decision list
+    configurations:
+      - source-flavors: "*/source"
+      - smil-flavors: smil/tmp
+      - target-smil-flavor: smil/tmp
+      - target-flavor-subtype: trimmed
+      - interactive: false
+
+  - id: duplicate-event
+    fail-on-error: true
+    exception-handler-workflow: partial-error
+    description: Duplicate event
+    configurations:
+      - source-flavors: "*/trimmed"
+      - number-of-events: 1
+      - property-namespaces: org.opencastproject.assetmanager.security
+      - copy-number-prefix: copy
+
+  - id: start-workflow
+    configurations:
+      - workflow-definition: create-new-video-from-cut
+      - media-packages: ${duplicate_media_package_ids}
+
+  - id: cleanup
+    fail-on-error: false
+    description: Remove temporary processing artifacts
+    configurations:
+      - delete-external: false
+      - preserve-flavors: "security/*"

@@ -1,0 +1,223 @@
+---
+
+id: uos-partial-publish
+title: Publish the recording
+operations:
+
+  - id: analyze-mediapackage
+    description: Analyze media package and set control variables
+
+  - id: prepare-av
+    if: (NOT (${presentation-2_prepared_exists}))
+    exception-handler-workflow: partial-error
+    description: Preparing presentation-2(second presentation) audio and video work versions
+    configurations:
+      - source-flavor: presentation-2/source
+      - target-flavor: presentation-2/prepared
+      - target-tags: -archive
+      - rewrite: false
+      - audio-muxing-source-flavors: "*/?,*/*"
+
+  - id: prepare-av
+    if: (NOT (${presenter_prepared_exists}))
+    exception-handler-workflow: partial-error
+    description: Preparing presenter (camera) audio and video work versions
+    configurations:
+      - source-flavor: presenter/source
+      - target-flavor: presenter/prepared
+      - target-tags: -archive
+      - rewrite: false
+      - audio-muxing-source-flavors: "*/?,*/*"
+
+  - id: prepare-av
+    if: (NOT (${presentation_prepared_exists}))
+    exception-handler-workflow: partial-error
+    description: Preparing presentation (screen) audio and video work version
+    configurations:
+      - source-flavor: presentation/source
+      - target-flavor: presentation/prepared
+      - rewrite: false
+      - target-tags: -archive
+      - audio-muxing-source-flavors: "*/?,*/*"
+
+  - id: tag
+    if: (NOT (${captions_prepared}))
+    description: Create captions with 'prepared' tag, so the default operations will be executed on them
+    configurations:
+      - source-flavors: "captions/source"
+      - target-flavors: "captions/prepared"
+      - target-tags: -archive
+      - copy: true
+
+  - id: inspect
+    description: Inspecting mediapackage track elements
+    configurations:
+      - overwrite: false
+      - accept-no-media: false
+      - accurate-frame-count: false
+
+  - id: select-tracks
+    exception-handler-workflow: partial-error
+    description: Selecting audio/video streams for processing
+    configurations:
+      - source-flavor: "*/prepared"
+      - target-flavor: "*/work"
+      - target-tags: -archive
+      - audio-muxing: duplicate
+
+  - id: analyze-tracks
+    exception-handler-workflow: partial-error
+    description: Analyzing tracks in media package and setting control variables
+    configurations:
+      - source-flavor: "*/work"
+
+  - id: clone
+    exception-handler-workflow: partial-error
+    description: Creating working copy of the cutting information
+    configurations:
+      - source-flavor: smil/cutting
+      - target-flavor: smil/tmp
+
+  - id: editor
+    exception-handler-workflow: partial-error
+    description: Cutting the recording according to the edit decision list
+    configurations:
+      - source-flavors: "*/work"
+      - smil-flavors: smil/tmp
+      - target-smil-flavor: smil/tmp
+      - target-flavor-subtype: trimmed
+      - interactive: false
+
+  - id: tag
+    description: Tagging captions for delivery
+    configurations:
+      - source-flavors: "captions/trimmed"
+      - target-flavors: "captions/delivery"
+      - target-tags: +engage-download
+
+  - id: image
+    exception-handler-workflow: partial-error
+    description: Creating search result default thumbnails
+    configurations:
+      - source-flavor: "*/trimmed"
+      - target-flavor: "*/search+preview"
+      - target-tags: engage-download
+      - encoding-profile: search-cover.http
+      - time: 1
+
+  - id: image
+    if: (NOT (${presentation/thumbnail_edited}))
+    exception-handler-workflow: partial-error
+    description: Creating player preview image
+    configurations:
+      - source-flavor: presentation/trimmed
+      - target-flavor: presentation/player+preview
+      - target-tags: engage-download
+      - encoding-profile: player-preview.http
+      - time: 1
+
+  - id: tag
+    if: ${presentation/thumbnail_edited}
+    exception-handler-workflow: partial-error
+    description: Prepare thumbnail for publication
+    configurations:
+      - source-flavor: presentation/player+preview
+      - target-tags: +engage-download
+
+  - id: image
+    if: (NOT (${presenter/thumbnail_edited}))
+    exception-handler-workflow: partial-error
+    fail-on-error: false
+    description: Creating player preview image
+    configurations:
+      - source-flavor: presenter/trimmed
+      - target-flavor: presenter/player+preview
+      - encoding-profile: player-preview.http
+      - time: 1
+
+  - id: tag
+    if: ${presenter/thumbnail_edited}
+    exception-handler-workflow: partial-error
+    description: Prepare thumbnail for publication
+    configurations:
+      - source-flavor: presenter/player+preview
+      - target-tags: +engage-download
+
+  - id: timelinepreviews
+    fail-on-error: false
+    exception-handler-workflow: partial-error
+    description: Creating timeline preview images
+    configurations:
+      - source-flavor: "*/trimmed"
+      - target-flavor: "*/timeline+preview"
+      - target-tags: engage-download
+      - image-count: 100
+
+  - id: encode
+    if: ${presenter_work_video} OR ${presentation_work_video} OR ${presentation-2_work_video}
+    exception-handler-workflow: partial-error
+    description: Encoding videos to delivery formats
+    configurations:
+      - source-flavor: "*/trimmed"
+      - target-flavor: "*/delivery"
+      - target-tags: engage-download
+      - encoding-profile: studio.adaptive-parallel.http
+
+  - id: encode
+    if: ${presenter_work_video}
+    fail-on-error: false
+    exception-handler-workflow: partial-error
+    description: Encoding presenter (screen) to MP3 audio download
+    configurations:
+      - source-flavor: presenter/trimmed
+      - target-flavor: presenter/delivery
+      - target-tags: engage-download
+      - encoding-profile: mp3.http
+
+  - id: tag
+    exception-handler-workflow: partial-error
+    description: Tagging source material for download
+    configurations:
+      - source-tags: 720p-quality
+      - target-tags: +atom,+download
+
+  - id: segment-video
+    fail-on-error: false
+    description: Detecting slide transitions in presentation track
+    configurations:
+      - source-flavor: presentation/trimmed
+      - target-tags: engage-download
+
+  - id: segmentpreviews
+    fail-on-error: false
+    description: Creating preview images for presentation segments
+    configurations:
+      - source-flavor: presentation/trimmed
+      - target-flavor: presentation/segment+preview
+      - reference-flavor: presentation/delivery
+      - reference-tags: engage-download
+      - target-tags: engage-download
+      - encoding-profile: player-slides.http
+
+  - id: extract-text
+    fail-on-error: false
+    description: Extracting text from presentation segments
+    configurations:
+      - source-flavor: presentation/trimmed
+      - target-tags: engage-download
+
+  - id: publish-engage
+    max-attempts: 2
+    exception-handler-workflow: partial-error
+    description: Publishing to Opencast Media Module
+    configurations:
+      - download-source-flavors: "dublincore/*,security/*"
+      - download-source-tags: engage-download,atom,mobile
+      - streaming-source-tags: engage-streaming
+      - check-availability: false
+
+  - id: include
+    if: ${amberscriptCaptions} AND (NOT ${captions_prepared_exists} AND NOT ${captions_source_exists})
+    description: Create AmberScript Captions
+    configurations:
+      - workflow-id: amberscript-start-transcription

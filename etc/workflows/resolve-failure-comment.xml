@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<definition xmlns="http://workflow.opencastproject.org">
+
+  <id>Resolve-failure-comment</id>
+  <title>Fehlgeschlagen Kommentar entfernen</title>
+  <tags>
+    <tag>archive</tag>
+  </tags>
+  <displayOrder>1000</displayOrder>
+  <description>
+  </description>
+  <configuration_panel/>
+
+  <operations>
+
+  
+    <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+    <!-- Remove tag for cutting                                            -->
+    <!--                                                                   -->
+    <!-- Remove the comments that marked the recording for cutting.        -->
+    <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+
+    <!-- Resolve the comment for cutting -->
+
+    <operation
+      id="comment"
+      description="Resolve the cutting flag">
+      <configurations>
+        <configuration key="description">Processing failed</configuration>
+        <configuration key="reason">EVENTS.EVENTS.DETAILS.COMMENTS.REASONS.PROCESSING_FAILURE</configuration>
+        <configuration key="action">resolve</configuration>
+      </configurations>
+    </operation>
+
+    <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+    <!-- Archive                                                           -->
+    <!--                                                                   -->
+    <!-- Download from external ingest nodes, tag, inspect and and prepare -->
+    <!-- source recording and metadata catalogs.                           -->
+    <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+
+    <!-- Archive the recording -->
+
+    <operation
+      id="snapshot"
+      description="Archive publishing information">
+      <configurations>
+        <configuration key="source-tags">archive</configuration>
+      </configurations>
+    </operation>
+
+    <!-- Clean up work artifacts -->
+
+    <operation
+        id="cleanup"
+        fail-on-error="false"
+        description="Remove temporary processing artifacts">
+      <configurations>
+        <configuration key="delete-external">false</configuration>
+        <!-- FixMe Don't clean up ACLs until workflow service no longer looks for them in the WFR. -->
+        <configuration key="preserve-flavors">security/*</configuration>
+      </configurations>
+    </operation>
+
+  </operations>
+</definition>

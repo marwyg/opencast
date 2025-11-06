@@ -1,0 +1,192 @@
+---
+id: uos-studio
+title: Studio Upload
+tags:
+  - archive
+  - upload
+
+description: |-
+          A simple and fast workflow for publishing videos created by Opencast Studio.
+
+operations:
+
+  - id: defaults
+    description: Applying default configuration values
+    configurations:
+      - skipEditorPreview: false
+      - publishToEngage: true
+      - publishToApi: false
+      - publishToOaiPmh: false
+      - publishToAws: false
+      - thumbnailType: 0
+      - thumbnailPosition: 1
+
+  - id: inspect
+    exception-handler-workflow: partial-error
+    description: Inspecting audio and video streams
+    configurations:
+      - overwrite: false
+      - accept-no-media: false
+
+  - id: series
+    exception-handler-workflow: partial-error
+    description: Applying series dublincore catalogs and access control entries
+    configurations:
+      - attach: "*"
+      - apply-acl: true
+
+  - id: tag
+    exception-handler-workflow: partial-error
+    description: Tagging source material for archival
+    configurations:
+      - source-flavors: "dublincore/*,security/*,*/source,captions/*"
+      - target-tags: +archive
+
+  - id: include
+    description: Include studio tracks normalization tasks
+    configurations:
+      - workflow-id: partial-transcode-studio-tracks
+
+  - id: snapshot
+    fail-on-error: true
+    exception-handler-workflow: partial-error
+    description: Archiving
+    configurations:
+      - source-tags: archive
+
+  - id: include
+    if: NOT ${skipEditorPreview}
+    description: Prepare preview versions of the recording
+    configurations:
+      - workflow-id: uos-partial-preview
+
+  - id: encode
+    exception-handler-workflow: partial-error
+    description: Encoding videos to delivery formats
+    configurations:
+      - source-flavor: "*/prepared"
+      - target-flavor: "*/delivery"
+      - target-tags: engage-download,engage-streaming
+      - encoding-profile: studio.adaptive-parallel.http
+
+  - id: encode
+    if: ${presenter_source_audio}
+    fail-on-error: false
+    exception-handler-workflow: partial-error
+    description: Encoding presenter (screen) to MP3 audio download
+    configurations:
+      - source-flavor: presenter/prepared
+      - target-flavor: presenter/delivery
+      - target-tags: engage-download,engage-streaming
+      - encoding-profile: mp3.http
+
+  - id: encode
+    if: NOT (${presenter_source_audio}) AND ${presentation_source_audio}
+    fail-on-error: false
+    exception-handler-workflow: partial-error
+    description: Encoding presentation (screen) to MP3 audio download
+    configurations:
+      - source-flavor: presentation/prepared
+      - target-flavor: presentation/delivery
+      - target-tags: engage-download,engage-streaming
+      - encoding-profile: mp3.http
+
+  - id: tag
+    exception-handler-workflow: partial-error
+    description: Tagging source material for download
+    configurations:
+      - source-tags: 720p-quality
+      - target-tags: +atom,+download
+
+  - id: image
+    exception-handler-workflow: partial-error
+    description: Creating player preview image
+    configurations:
+      - source-flavor: "*/prepared"
+      - target-flavor: "*/player+preview"
+      - target-tags: engage-download
+      - encoding-profile: player-preview.http
+      - time: 1
+
+  - id: timelinepreviews
+    fail-on-error: false
+    exception-handler-workflow: partial-error
+    description: Creating timeline preview images
+    configurations:
+      - source-flavor: "*/prepared"
+      - target-flavor: "*/timeline+preview"
+      - target-tags: engage-download
+      - image-count: 100
+
+  - id: segment-video
+    fail-on-error: false
+    description: Detecting slide transitions in presentation track
+    configurations:
+      - source-flavor: presentation/prepared
+      - target-tags: engage-download
+
+  - id: segmentpreviews
+    fail-on-error: false
+    description: Creating preview images for presentation segments
+    configurations:
+      - source-flavor: presentation/prepared
+      - target-flavor: presentation/segment+preview
+      - reference-flavor: presentation/delivery
+      - reference-tags: engage-download
+      - target-tags: engage-download
+      - encoding-profile: player-slides.http
+
+  - id: extract-text
+    fail-on-error: false
+    description: Extracting text from presentation segments
+    configurations:
+      - source-flavor: presentation/prepared
+      - target-tags: engage-download
+
+  - id: publish-engage
+    if: ${publishToEngage}
+    max-attempts: 2
+    exception-handler-workflow: partial-error
+    description: Publishing to Opencast Media Module
+    configurations:
+      - download-source-flavors: "dublincore/*,security/*"
+      - download-source-tags: engage-download,atom,mobile
+      - streaming-source-tags: engage-streaming
+      - check-availability: true
+
+  - id: publish-configure
+    if: ${publishToApi}
+    exception-handler-workflow: partial-error
+    description: Publish to external api publication channel
+    configurations:
+      - channel-id: api
+      - mimetype: application/json
+      - source-tags: engage-download,engage-streaming
+      - url-pattern: http://localhost:8080/api/events/${event_id}
+      - with-published-elements: false
+      - check-availability: true
+
+  - id: include
+    description: Create AmberScript Captions
+    configurations:
+      - workflow-id: amberscript-start-transcription
+
+  - id: tag
+    fail-on-error: false
+    description: Remove processing tags
+    configurations:
+      - source-tags: archive
+      - target-tags: -engage-download
+
+  - id: snapshot
+    exception-handler-workflow: partial-error
+    description: Archiving
+    configurations:
+      - source-tags: archive
+
+  - id: cleanup
+    fail-on-error: false
+    description: Remove temporary processing artifacts
+    configurations:
+      - preserve-flavors: "security/*"
+      - delete-external: false

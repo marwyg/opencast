@@ -1,0 +1,100 @@
+---
+
+id: uos-schedule-and-upload
+title: Geplante Aufzeichnung
+tags:
+  - upload
+  - schedule
+  - archive
+
+displayOrder: 1000
+description: |-
+  Der Standardworkflow.
+
+  Normalerweise werden die Aufzeichnungen kontrolliert und geschnitten.
+  Wenn "Veröffentlichen ohne Schneiden" gewählt wird, werden sie direkt veröffentlicht.
+
+  Maximale Ausgabe-Auflösung: 3820x2160 (4K)
+configuration_panel_json: |-
+    [{
+      "fieldset": [
+        {
+          "type": "checkbox",
+          "name": "straightToPublishing",
+          "label": "Veröffentlichen ohne Schneiden",
+          "value": false
+        },
+        {
+          "type": "checkbox",
+          "name": "publishLive",
+          "label": "Live Streaming über das Opencast Media Module",
+          "value": false
+        }
+      ]
+    }]
+
+operations:
+
+  - id: defaults
+    description: Applying default configuration values
+    configurations:
+      - straightToPublishing: false
+      - publishToEngage: true
+      - publishLive: false
+      - voskCaptions: false
+      - amberscriptCaptions: true
+
+  - id: export-wf-properties
+    fail-on-error: true
+    exception-handler-workflow: partial-error
+    description: Export workflow settings to Java properties file
+    configurations:
+      - target-flavor: processing/defaults
+      - target-tags: archive
+
+  - id: include
+    description: Finalize upload and ingest
+    configurations:
+      - workflow-id: uos-partial-ingest
+
+  - id: snapshot
+    description: Archive raw recording after ingest
+    configurations:
+      - source-tags: archive
+
+  - id: include
+    description: Prepare preview versions of the recording
+    configurations:
+      - workflow-id: uos-partial-preview
+
+  - id: snapshot
+    description: Archive preview information
+    configurations:
+      - source-tags: archive
+
+  - id: comment
+    if: NOT ${straightToPublishing}
+    description: Mark the recording for cutting
+    configurations:
+      - description: Recording has not been cut yet.
+      - reason: EVENTS.EVENTS.DETAILS.COMMENTS.REASONS.CUTTING
+      - action: create
+
+  - id: include
+    if: ${straightToPublishing}
+    description: Publish the recording
+    configurations:
+      - workflow-id: uos-partial-publish
+
+  - id: snapshot
+    if: ${straightToPublishing}
+    description: Archive publishing information
+    configurations:
+      - source-tags: archive
+
+  - id: cleanup
+    fail-on-error: false
+    description: Remove temporary processing artifacts
+    configurations:
+      - delete-external: false
+      - preserve-flavors: "security/*"

@@ -1,0 +1,31 @@
+---
+
+id: amberscript-start-transcription
+title: Start AmberScript Transcription
+tags:
+  - archive
+
+description: Start AmberScript transcription
+
+operations:
+  - id: encode
+    fail-on-error: false
+    exception-handler-workflow: partial-error
+    description: Encoding audio for transcription
+    configurations:
+      - source-flavor: "*/source"
+      - target-flavor: audio/mp3
+      - target-tags: transcript
+      - encoding-profile: audio-mp3
+
+  - id: amberscript-start-transcription
+    max-attempts: 3
+    retry-strategy: hold
+    fail-on-error: false
+    exception-handler-workflow: partial-error
+    description: Start AmberScript transcription job
+    configurations:
+      - source-tag: transcript
+      - language: de
+      - jobtype: direct
+      - skip-if-flavor-exists: captions/vtt

@@ -1,0 +1,24 @@
+---
+
+id: uos-encode-presenter
+title: encode Presenter
+
+operations:
+  - id: encode
+    exception-handler-workflow: partial-error
+    description: Encoding presenter videos to delivery formats
+    configurations:
+      - source-flavor: "*/trimmed"
+      - target-flavor: "*/delivery"
+      - target-tags: engage-download,engage-streaming
+      - encoding-profile: studio.adaptive-parallel.http
+
+  - id: encode
+    fail-on-error: false
+    exception-handler-workflow: partial-error
+    description: Encoding presenter (screen) to MP3 audio download
+    configurations:
+      - source-flavor: presenter/trimmed
+      - target-flavor: presenter/delivery
+      - target-tags: engage-download,engage-streaming
+      - encoding-profile: mp3.http

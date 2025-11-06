@@ -1,0 +1,99 @@
+---
+
+id: vosk-subtitles
+title: Create Subtitles with Vosk
+tags:
+  - archive
+
+displayOrder: 10
+configuration_panel: |-
+   <![CDATA[
+      <div id="workflow-configuration" style="padding-top: 20px">
+        <fieldset>
+          <div id="stt-flavor-div">
+            <input
+              id="stt_flavor"
+              name="stt_flavor"
+              type="text"
+              class="configField"
+              style="width: 200px; margin-right: 10px"
+              value="*"
+              />
+              <label for="stt_flavor">Flavor</label>
+          </div>
+          <div id="stt-subflavor-div" style="padding-top: 20px">
+            <input
+              id="stt_subFlavor"
+              name="stt_subFlavor"
+              type="text"
+              maxlength="255"
+              class="configField"
+              style="width: 200px; margin-right: 10px"
+              value="presenter-source"
+            />
+            <label for="numberOfEvents">SubFlavor</label>
+          </div>
+          <div id="stt-language-div" style="padding-top: 20px">
+            <input
+              id="language"
+              name="language"
+              type="text"
+              class="configField"
+              style="width: 200px; margin-right: 10px"
+              value="ger"
+              />
+              <label for="stt_language">Language</label>
+          </div>
+          <div id="publish-div" style="padding-top: 20px">
+            <input id="publish" name="publish" type="checkbox" class="configField" value="true" checked=checked />
+            <label for="publish">publish</label>
+          </div>
+        </fieldset>
+      </div>
+
+operations:
+
+  - id: speechtotext
+    fail-on-error: true
+    exception-handler-workflow: partial-error
+    description: Generate subtitles with Vosk
+    configurations:
+      - source-flavor: ${stt_flavor}/${stt_subFlavor}
+      - target-flavor: captions/vtt+${language}
+      - target-element: attachment
+      - target-tags: archive,subtitle,engage-download
+      - language-code: ${language}
+
+  - id: publish-engage
+    if: ${publish}
+    max-attempts: 2
+    fail-on-error: true
+    exception-handler-workflow: partial-error
+    description: Publishing to Engage
+    configurations:
+      - download-source-tags: engage-download,atom,subtitle,mobile
+      - streaming-source-tags: engage-streaming
+      - download-source-flavors: "dublincore/*,security/*,captions/vtt+${language}"
+      - strategy: merge
+      - check-availability: false
+
+  - id: snapshot
+    fail-on-error: true
+    exception-handler-workflow: partial-error
+    description: Archiving
+    configurations:
+      - source-flavors: captions/vtt+${language}
+      - source-tags: archive
+
+  - id: cleanup
+    fail-on-error: false
+    description: Remove temporary processing artifacts
+    configurations:
+      - delete-external: false
+      - preserve-flavors: "security/*"
+
+state-mappings:
+  - state: running
+    value: EVENTS.EVENTS.STATUS.PROCESSING
+  - state: failing
+    value: EVENTS.EVENTS.STATUS.PROCESSING_FAILURE

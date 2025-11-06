@@ -1,0 +1,51 @@
+---
+id: uos-partial-ingest
+title: Ingest asset
+tags: []
+operations:
+  - id: ingest-download
+    exception-handler-workflow: partial-error
+    description: Ingesting external elements
+    configurations:
+      - delete-external: false
+  - id: inspect
+    exception-handler-workflow: partial-error
+    description: Inspecting audio and video streams
+    configurations:
+      - overwrite: false
+      - accept-no-media: false
+  - id: series
+    exception-handler-workflow: partial-error
+    description: Applying access control entries
+    configurations:
+      - attach: '*'
+      - apply-acl: true
+
+  - id: analyze-tracks
+    configurations:
+      - source-flavor: '*/source'
+
+  - id: tag
+    if: (${audience_source_media})
+    description: change flavor for arec 3 streams
+    configurations:
+      - source-flavors: presenter/source
+      - target-flavors: presentation-2/source
+
+  - id: tag
+    if: (${audience_source_media})
+    description: change flavor for arec 3 streams
+    configurations:
+      - source-flavors: audience/source
+      - target-flavors: presenter/source
+
+  - id: tag
+    description: Tagging source material for archival
+    configurations:
+      - source-flavors: '*/*'
+      - target-tags: +archive
+state-mappings:
+  - state: running
+    value: EVENTS.EVENTS.STATE_MAPPING.IMPORTING
+  - state: failing
+    value: EVENTS.EVENTS.STATE_MAPPING.IMPORTING

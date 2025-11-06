@@ -1,0 +1,70 @@
+---
+
+id: delete-captions
+title: Untertitel löschen
+tags:
+  - archive
+
+description: |-
+  Löscht alle untertiel und publiziert das neue Mediapackage.
+
+displayOrder: 100
+state-mappings:
+  - state: running
+    value: EVENTS.EVENTS.STATE_MAPPING.DELETING_CAPTIONS
+  - state: failing
+    value: EVENTS.EVENTS.STATE_MAPPING.DELETING_CAPTIONS
+
+operations:
+
+  - id: publication-channel-to-workspace
+    description: Copy publication channel to workspace
+    fail-on-error: true
+    exception-handler-workflow: partial-error
+    configurations:
+      - source-channel: engage-player
+      - source-flavors: presenter/delivery,presentation/delivery
+      - source-tags: engage-download,engage-streaming
+
+  - id: ingest-download
+    exception-handler-workflow: partial-error
+    description: Ingesting external elements
+    configurations:
+      - source-flavors: presenter/delivery,presentation/delivery
+      - source-tags: engage-download,engage-streaming
+      - delete-external: false
+
+  - id: tag
+    description: Un-Tagging archive for captions
+    configurations:
+      - source-flavor: "captions/*"
+      - target-tags: -archive,-subtitle,-engage-download,-engage-streaming
+
+  - id: log
+    description: Log to file
+    configurations:
+      - directory: /tmp/logtest
+
+  - id: snapshot
+    exception-handler-workflow: partial-error
+    description: Archiving
+    configurations:
+      - source-tags: archive
+
+  - id: publish-engage
+    max-attempts: 2
+    fail-on-error: true
+    exception-handler-workflow: partial-error
+    description: Publishing to Engage
+    configurations:
+      - download-source-tags: engage-download,atom,mobile
+      - streaming-source-tags: engage-streaming
+      - download-source-flavors: "dublincore/*,security/*"
+      - check-availability: false
+
+  - id: cleanup
+    fail-on-error: false
+    description: Remove temporary processing artifacts
+    configurations:
+      - delete-external: false
+      - preserve-flavors: "security/*"

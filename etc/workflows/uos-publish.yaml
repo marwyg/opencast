@@ -1,0 +1,69 @@
+---
+
+id: uos-publish
+title: Veröffentlichen
+description: Video verarbeiten und veröffentlichen
+tags:
+  - archive
+  - editor
+
+displayOrder: 200
+state-mappings:
+  - state: running
+    value: EVENTS.EVENTS.STATE_MAPPING.PUBLISHING
+  - state: failing
+    value: EVENTS.EVENTS.STATE_MAPPING.PUBLISHING
+
+configuration_panel: |-
+    <div id="workflow-configuration">
+     <legend>Captions: </legend>
+      <fieldset>
+        <input id="voskCaptions" name="voskCaptions" type="checkbox" class="configField" value="false" />
+        <label for="voskCaptions">Vosk Untertitel</label>
+     </fieldset>
+     <fieldset>
+        <input id="amberscriptCaptions" name="amberscriptCaptions" type="checkbox" class="configField" value="true" />
+        <label for="amberscriptCaptions">Amberscript Untertitel</label>
+      </fieldset>
+    </div>
+
+operations:
+
+  - id: comment
+    description: Resolving the cutting marker
+    configurations:
+      - description: Recording has not been cut yet.
+      - reason: EVENTS.EVENTS.DETAILS.COMMENTS.REASONS.CUTTING
+      - action: resolve
+
+  - id: defaults
+    description: Applying default configuration values
+    configurations:
+      - publishToEngage: true
+      - voskCaptions: false
+      - amberscriptCaptions: true
+
+  - id: export-wf-properties
+    fail-on-error: true
+    exception-handler-workflow: partial-error
+    description: Export workflow settings to Java properties file
+    configurations:
+      - target-flavor: processing/defaults
+      - target-tags: archive
+
+  - id: include
+    description: Publish the recording
+    configurations:
+      - workflow-id: uos-partial-publish
+
+  - id: snapshot
+    description: Archive publishing information
+    configurations:
+      - source-tags: archive
+
+  - id: cleanup
+    fail-on-error: false
+    description: Remove temporary processing artifacts
+    configurations:
+      - delete-external: false
+      - preserve-flavors: "security/*"

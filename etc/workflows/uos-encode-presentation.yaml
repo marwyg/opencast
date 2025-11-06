@@ -1,0 +1,16 @@
+---
+
+id: uos-encode-presentation
+title: encode Presentation
+
+operations:
+
+
+  - id: encode
+    exception-handler-workflow: partial-error
+    description: Encoding presentation videos to delivery formats
+    configurations:
+      - source-flavor: "*/trimmed"
+      - target-flavor: "*/delivery"
+      - target-tags: engage-download,engage-streaming
+      - encoding-profile: studio.adaptive-parallel.http

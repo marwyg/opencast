@@ -1,0 +1,58 @@
+---
+id: create-new-video-from-cut
+title: Neues Video erstellen von Schnittmarke
+
+displayOrder: 5000
+
+state-mappings:
+  - state: running
+    value: EVENTS.EVENTS.STATE_MAPPING.PUBLISHING
+  - state: failing
+    value: EVENTS.EVENTS.STATE_MAPPING.PUBLISHING
+
+operations:
+
+  - id: defaults
+    description: Applying default configuration values
+    configurations:
+      - straightToPublishing: false
+      - publishToEngage: false
+      - notpresentation: false
+      - notpresenter: false
+
+  - id: export-wf-properties
+    fail-on-error: true
+    exception-handler-workflow: partial-error
+    description: Export workflow settings to Java properties file
+    configurations:
+      - target-flavor: processing/defaults
+      - target-tags: archive
+
+  - id: clone
+    description: Clone trimmed to source
+    configurations:
+      - source-flavors: "*/trimmed"
+      - target-flavor: "*/source"
+
+  - id: tag
+    description: archive source
+    configurations:
+      - source-flavors: "*/source"
+      - target-tags: +archive
+
+  - id: tag
+    description: unarchive trimed
+    configurations:
+      - source-flavors: "*/trimmed"
+      - target-tags: -archive
+
+  - id: snapshot
+    description: Archiving
+    configurations:
+      - source-tags: archive
+      - source-flavors: "*/source,dublincore/*,security/*"
+
+  - id: include
+    description: Publish the recording
+    configurations:
+      - workflow-id: uos-studio

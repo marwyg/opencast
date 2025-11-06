@@ -1,0 +1,113 @@
+---
+
+id: uos-partial-preview
+title: Prepare preview artifacts
+state-mappings:
+  - state: running
+    value: EVENTS.EVENTS.STATE_MAPPING.UPDATING_PREVIEWS
+  - state: failing
+    value: EVENTS.EVENTS.STATE_MAPPING.UPDATING_PREVIEWS
+
+operations:
+
+  - id: analyze-tracks
+    exception-handler-workflow: partial-error
+    description: Analyze tracks in media package and set control variables
+    configurations:
+      - source-flavor: '*/source'
+
+  - id: prepare-av
+    exception-handler-workflow: partial-error
+    description: Preparing presenter (camera) audio and video work versions
+    configurations:
+      - source-flavor: presenter/source
+      - target-flavor: presenter/prepared
+      - target-tags: -archive
+      - rewrite: false
+      - audio-muxing-source-flavors: "*/?,*/*"
+
+  - id: prepare-av
+    if: (${presentation_source_video})
+    exception-handler-workflow: partial-error
+    description: Preparing presentation (screen) audio and video work version
+    configurations:
+      - source-flavor: presentation/source
+      - target-flavor: presentation/prepared
+      - rewrite: false
+      - target-tags: -archive
+      - audio-muxing-source-flavors: "*/?,*/*"
+
+  - id: prepare-av
+    if: (${presentation-2_source_video})
+    exception-handler-workflow: partial-error
+    description: Preparing second presentation (screen) audio and video work version
+    configurations:
+      - source-flavor: presentation-2/source
+      - target-flavor: presentation-2/prepared
+      - rewrite: false
+      - target-tags: -archive
+      - audio-muxing-source-flavors: "*/?,*/*"
+
+  - id: encode
+    exception-handler-workflow: partial-error
+    description: Create video previews
+    configurations:
+      - source-flavors: "*/prepared"
+      - target-flavor: "*/preview"
+      - target-tags: preview
+      - encoding-profile: mp4-preview.http
+
+  - id: waveform
+    exception-handler-workflow: partial-error
+    description: Generating waveform
+    configurations:
+      - source-flavor: '*/preview'
+      - target-flavor: '*/waveform'
+      - target-tags: preview
+
+
+  - id: image
+    exception-handler-workflow: partial-error
+    description: Create video preview images for presenter and presentation
+    configurations:
+      - source-flavor: "*/prepared"
+      - target-flavor: "*/video+preview"
+      - target-tags: preview
+      - encoding-profile: editor.tracks.preview
+      - time: "50%"
+
+  - id: waveform
+    fail-on-error: false
+    description: Generating waveform
+    configurations:
+      - source-flavor: "*/prepared"
+      - target-flavor: "*/audio+preview"
+      - target-tags: preview
+      - min-width: 688
+      - max-width: 688
+      - height: 58
+
+  - id: silence
+    if: NOT ${straightToPublishing}
+    fail-on-error: false
+    description: Detecting silence
+    configurations:
+      - source-flavors: "*/preview"
+      - smil-flavor-subtype: silence
+      - reference-tracks-flavor: "*/source"
+
+  - id: tag
+    if: NOT ${straightToPublishing}
+    description: Preparing silence detection for preview
+    configurations:
+      - source-flavors: '*/silence'
+      - target-tags: +archive
+
+  - id: publish-configure
+    exception-handler-workflow: partial-error
+    description: Publish to editor
+    configurations:
+      - download-source-tags: preview,editor
+      - channel-id: internal
+      - url-pattern: ${org_org_opencastproject_admin_ui_url!'http://localhost:8080'}/admin-ng/index.html#/events/events/${event_id}/tools/editor
+      - check-availability: false
