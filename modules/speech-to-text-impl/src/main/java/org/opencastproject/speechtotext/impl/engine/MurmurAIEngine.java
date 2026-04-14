@@ -23,6 +23,7 @@ package org.opencastproject.speechtotext.impl.engine;
 
 import org.opencastproject.speechtotext.api.SpeechToTextEngine;
 import org.opencastproject.speechtotext.api.SpeechToTextEngineException;
+import org.opencastproject.util.OsgiUtil;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -51,6 +52,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 
 /** MurmurAI implementation of the Speech-to-text engine interface. */
 @Component(
@@ -96,6 +98,32 @@ public class MurmurAIEngine implements SpeechToTextEngine {
   /** Currently used maximum wait time. */
   private int maxWaitTime = MURMURAI_MAX_WAIT_TIME_DEFAULT;
 
+  // ----------------------------------------------------------------------------------------------------------------------------------
+
+  /** Config key for activating speaker labels feature */
+  private static final String MURMURAI_SPEAKER_LABELS_CONFIG_KEY = "murmurai.speaker_labels";
+
+  /** Tells if the speaker labels feature is active */
+  private Optional<Boolean> murmuraiSpeakerLabelsActive;
+
+  /** Config key for selecting the VAD method */
+  private static final String MURMURAI_VAD_METHOD_CONFIG_KEY = "murmurai.vad_method";
+
+  /** Currently used VAD method. */
+  private Optional<String> murmuraiVadMethod = Optional.empty();
+
+  /** Config key for setting the maximum line width for subtitles */
+  private static final String MURMURAI_MAX_LINE_WIDTH_CONFIG_KEY = "murmurai.max_line_width";
+
+  /** Currently used maximum line width. */
+  private Optional<Integer> murmuraiMaxLineWidth = Optional.empty();
+
+  /** Config key for enabling word timestamps */
+  private static final String MURMURAI_WORD_TIMESTAMPS_CONFIG_KEY = "murmurai.word_timestamps";
+
+  /** Tells if word timestamps are enabled */
+  private Optional<Boolean> murmuraiWordTimestamps = Optional.empty();
+
 
   /** Configuration for HTTP requests with timeouts set to 30s */
   private final RequestConfig httpRequestConfig = RequestConfig.custom()
@@ -135,6 +163,27 @@ public class MurmurAIEngine implements SpeechToTextEngine {
         (String) properties.get(MURMURAI_MAX_WAIT_TIME_CONFIG_KEY),
         MURMURAI_MAX_WAIT_TIME_DEFAULT);
     logger.debug("Set MurmurAI maximum wait time to {} seconds", maxWaitTime);
+
+    murmuraiSpeakerLabelsActive = OsgiUtil.getOptCfgAsBoolean(properties, MURMURAI_SPEAKER_LABELS_CONFIG_KEY);
+    if (murmuraiSpeakerLabelsActive.isPresent()) {
+      logger.debug("Set MurmurAI speaker labels to {}", murmuraiSpeakerLabelsActive);
+    }
+
+    murmuraiVadMethod = OsgiUtil.getOptCfg(properties, MURMURAI_VAD_METHOD_CONFIG_KEY);
+    if (murmuraiVadMethod.isPresent()) {
+      logger.debug("Set MurmurAI VAD method to {}", murmuraiVadMethod);
+    }
+
+    murmuraiWordTimestamps = OsgiUtil.getOptCfgAsBoolean(properties, MURMURAI_WORD_TIMESTAMPS_CONFIG_KEY);
+    if (murmuraiWordTimestamps.isPresent()) {
+      logger.debug("Set MurmurAI word timestamps to {}", murmuraiWordTimestamps);
+    }
+
+    murmuraiMaxLineWidth = OsgiUtil.getOptCfgAsInt(properties, MURMURAI_MAX_LINE_WIDTH_CONFIG_KEY);
+    if (murmuraiMaxLineWidth.isPresent()) {
+      logger.debug("Set MurmurAI max line width to {}", murmuraiMaxLineWidth);
+    }
+
     logger.debug("Finished activating/updating speech-to-text service");
   }
 
@@ -189,7 +238,17 @@ public class MurmurAIEngine implements SpeechToTextEngine {
     try (var httpClient = HttpClientBuilder.create().setDefaultRequestConfig(httpRequestConfig).build()) {
       var request = new HttpPost(uploadUrl);
       request.setHeader("Authorization", "Bearer " + murmuraiApiKey);
-      request.setEntity(MultipartEntityBuilder.create().addBinaryBody("file", mediaFile).build());
+
+      var multipartEntity = MultipartEntityBuilder.create()
+          .addBinaryBody("file", mediaFile);
+
+      // Add optional config values as form fields if present
+      murmuraiSpeakerLabelsActive.ifPresent(value -> multipartEntity.addTextBody("speaker_labels", value.toString()));
+      murmuraiVadMethod.ifPresent(value -> multipartEntity.addTextBody("vad_method", value));
+      murmuraiMaxLineWidth.ifPresent(value -> multipartEntity.addTextBody("max_line_width", value.toString()));
+      murmuraiWordTimestamps.ifPresent(value -> multipartEntity.addTextBody("word_timestamps", value.toString()));
+
+      request.setEntity(multipartEntity.build());
 
       // Executing the POST request
       var response = httpClient.execute(request);
