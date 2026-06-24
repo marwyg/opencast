@@ -165,7 +165,7 @@ public interface ComposerService {
    * Silence will also be put between audio snippets.
    *
    * @param profileId The encoding profile to use
-   * @param audioStartTimes Start times of the audio tracks in milliseconds. Have to be in the same order like the tracks
+   * @param audioStartTimes Start times of the audio tracks in ms. Have to be in the same order like the tracks
    * @param audioTracks The audio tracks that will be merged into one track.
    * @return The merged audio track
    * @throws EncoderException if encoding fails

@@ -571,7 +571,8 @@ public class ComposerServiceRemoteImpl extends RemoteBase implements ComposerSer
     }
   }
 
-  public Job mergeAudioTracks(String profileId, List<Long> audioStartTimes, List<Track> audioTracks) throws EncoderException, MediaPackageException {
+  public Job mergeAudioTracks(String profileId, List<Long> audioStartTimes, List<Track> audioTracks)
+          throws EncoderException, MediaPackageException {
     HttpPost post = new HttpPost("/mergeaudio");
     try {
       List<BasicNameValuePair> params = new ArrayList<BasicNameValuePair>();

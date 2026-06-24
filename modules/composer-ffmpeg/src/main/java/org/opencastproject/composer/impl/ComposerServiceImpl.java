@@ -223,7 +223,8 @@ public class ComposerServiceImpl extends AbstractJobProducer implements Composer
 
   /** List of available operations on jobs */
   enum Operation {
-    Encode, Image, ImageConversion, Mux, Trim, Composite, Concat, ImageToVideo, ParallelEncode, Demux, ProcessSmil, MultiEncode, MergeAudioTracks
+    Encode, Image, ImageConversion, Mux, Trim, Composite, Concat, ImageToVideo, ParallelEncode, Demux, ProcessSmil,
+     MultiEncode, MergeAudioTracks
   }
 
   /** tracked encoder engines */
@@ -996,7 +997,8 @@ public class ComposerServiceImpl extends AbstractJobProducer implements Composer
   }
 
   @Override
-  public Job mergeAudioTracks(String profileId, List<Long> audioStartTimes, List<Track> audioTracks) throws MediaPackageException, EncoderException {
+  public Job mergeAudioTracks(String profileId, List<Long> audioStartTimes, List<Track> audioTracks)
+          throws MediaPackageException, EncoderException {
     try {
       ArrayList<String> arguments = new ArrayList<String>();
       arguments.add(0, profileId);
@@ -1012,8 +1014,9 @@ public class ComposerServiceImpl extends AbstractJobProducer implements Composer
   }
 
   @Override
-  public Job concat(String profileId, Dimension outputDimension, float outputFrameRate, boolean sameCodec, Track... tracks) throws EncoderException,
-          MediaPackageException {
+  public Job concat(String profileId, Dimension outputDimension, float outputFrameRate, boolean sameCodec,
+      Track... tracks)
+          throws EncoderException, MediaPackageException {
     ArrayList<String> arguments = new ArrayList<String>();
     arguments.add(0, profileId);
     if (outputDimension != null) {
@@ -1034,19 +1037,25 @@ public class ComposerServiceImpl extends AbstractJobProducer implements Composer
     }
   }
 
-  private Option<Track> mergeAudioTracks(Job job, String profileId, List<Long> audioStartTimes, List<Track> audioTracks) throws EncoderException {
+  private Optional<Track> mergeAudioTracks(Job job, String profileId, List<Long> audioStartTimes,
+      List<Track> audioTracks)
+          throws EncoderException {
     if (audioTracks.size() < 2) {
-      throw new EncoderException(String.format("The track parameter must at least have two tracks present. Provided tracks: {}", audioTracks.size()));
+      throw new EncoderException(String.format(
+        "The track parameter must at least have two tracks present. Provided tracks: {}", audioTracks.size()));
     }
 
     if (audioTracks.size() != audioStartTimes.size()) {
-      throw new EncoderException(String.format("Number of audio tracks ({}) and 'audio start times' ({}) are not equal.", audioTracks.size(), audioStartTimes.size()));
+      throw new EncoderException(String.format(
+        "Number of audio tracks ({}) and 'audio start times' ({}) are not equal.",
+         audioTracks.size(), audioStartTimes.size()));
     }
 
     List<File> audioFiles = new ArrayList<>();
     for (Track t : audioTracks) {
       if (t.hasVideo()) {
-        throw new EncoderException(String.format("There was at least one video in the audio track list: '{}'", t.getURI()));
+        throw new EncoderException(String.format(
+          "There was at least one video in the audio track list: '{}'", t.getURI()));
       }
       audioFiles.add(loadTrackIntoWorkspace(job, "audio_merge", t, false));
     }
@@ -1091,7 +1100,7 @@ public class ComposerServiceImpl extends AbstractJobProducer implements Composer
 
     // audio merge did not return a file
     if (!mergedAudioTrack.exists() || mergedAudioTrack.length() == 0) {
-      return none();
+      return Optional.empty();
     }
 
     // Put the file in the workspace
@@ -1103,10 +1112,10 @@ public class ComposerServiceImpl extends AbstractJobProducer implements Composer
     final String targetTrackId = IdImpl.fromUUID().toString();
     inspectedTrack.setIdentifier(targetTrackId);
 
-    return some(inspectedTrack);
+    return Optional.of(inspectedTrack);
   }
 
-  private Option<Track> concat(Job job, List<Track> tracks, String profileId, Dimension outputDimension,
+  private Optional<Track> concat(Job job, List<Track> tracks, String profileId, Dimension outputDimension,
           float outputFrameRate, boolean sameCodec)
           throws EncoderException, MediaPackageException {
 
@@ -1763,13 +1772,21 @@ public class ComposerServiceImpl extends AbstractJobProducer implements Composer
           serialized = StringUtils.trimToEmpty(MediaPackageElementParser.getArrayAsXml(outTracks));
           break;
         case MergeAudioTracks:
-          List<Long> audioStartTimes = Arrays.stream(arguments.get(1).split(",")).mapToLong(Long::parseLong).boxed().collect(Collectors.toList());
+          List<Long> audioStartTimes = Arrays.stream(arguments.get(1).split(","))
+              .mapToLong(Long::parseLong).boxed().collect(Collectors.toList());
           List<Track> audioTracks = new ArrayList<>();
           for (int i = 2; i < arguments.size(); i++) {
             audioTracks.add((Track) MediaPackageElementParser.getFromXml(arguments.get(i)));
           }
-          serialized = mergeAudioTracks(job, encodingProfile, audioStartTimes, audioTracks).map(
-                  MediaPackageElementParser.getAsXml()).getOrElse("");
+          serialized = mergeAudioTracks(job, encodingProfile, audioStartTimes, audioTracks)
+              .map(element -> {
+                try {
+                  return MediaPackageElementParser.getAsXml(element);
+                } catch (MediaPackageException e) {
+                  throw new RuntimeException(e);
+                }
+              })
+              .orElse("");
           break;
         default:
           throw new IllegalStateException("Don't know how to handle operation '" + operation + "'");
@@ -1949,11 +1966,13 @@ public class ComposerServiceImpl extends AbstractJobProducer implements Composer
     for (int i = 0; i < audioStartTimes.size(); i++) {
       // example: [0:a]adelay=1500:all=1[a0];
       // note: '0' is the incremental index
-      command.append("[").append(i).append(":a]").append("adelay=").append(audioStartTimes.get(i)).append(":all=1[a").append(i).append("];");
+      command.append("[").append(i).append(":a]").append("adelay=").append(audioStartTimes.get(i))
+          .append(":all=1[a").append(i).append("];");
       audioMixParts.append("[a").append(i).append("]");
     }
     // example: [a0][a1][a2]amix=inputs=3:duration=longest[aout]"
-    command.append(audioMixParts).append("amix=inputs=").append(audioStartTimes.size()).append(":duration=longest[aout]");
+    command.append(audioMixParts).append("amix=inputs=").append(audioStartTimes.size())
+        .append(":duration=longest[aout]");
     command.append("\" "); // closing double quote
 
     command.append("-map \"[aout]\" ");
@@ -1961,7 +1980,8 @@ public class ComposerServiceImpl extends AbstractJobProducer implements Composer
     return command.toString();
   }
 
-  private String buildConcatCommand(boolean onlyAudio, Dimension dimension, float outputFrameRate, List<File> files, List<Track> tracks) {
+  private String buildConcatCommand(boolean onlyAudio, Dimension dimension, float outputFrameRate,
+      List<File> files, List<Track> tracks) {
     StringBuilder sb = new StringBuilder();
 
     // Add input file paths

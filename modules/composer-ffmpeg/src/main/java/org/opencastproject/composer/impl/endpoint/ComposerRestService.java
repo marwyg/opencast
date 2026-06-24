@@ -803,15 +803,36 @@ public class ComposerRestService extends AbstractJobProducerEndpoint {
   @POST
   @Path("mergeaudio")
   @Produces(MediaType.TEXT_XML)
-  @RestQuery(name = "mergeaudio", description = "Starts a audio merging process from multiple audio tracks, based on the specified encoding profile ID, the source tracks and a list of starting times", restParameters = {
-      @RestParameter(description = "The audio tracks to merge as xml", isRequired = true, name = "audioTracks", type = Type.TEXT),
-      @RestParameter(description = "The encoding profile to use", isRequired = true, name = "profileId", type = Type.STRING),
-      @RestParameter(description = "The audio start times as comma seperated list", isRequired = true, name = "audioStartTimes", type = Type.STRING), }, responses = {
-      @RestResponse(description = "Results in an xml document containing the merged audio track", responseCode = HttpServletResponse.SC_OK),
-      @RestResponse(description = "If required parameters aren't set or if sourceTracks aren't from the type Track or not at least two tracks are present", responseCode = HttpServletResponse.SC_BAD_REQUEST) }, returnDescription = "")
+  @RestQuery(
+      name = "mergeaudio",
+      description = "Starts a audio merging process from multiple audio tracks, based on the specified "
+      + "encoding profile ID, the source tracks and a list of starting times",
+      restParameters = {
+      @RestParameter(
+        description = "The audio tracks to merge as xml",
+        isRequired = true, name = "audioTracks",
+        type = Type.TEXT),
+      @RestParameter(
+        description = "The encoding profile to use",
+        isRequired = true, name = "profileId",
+        type = Type.STRING),
+      @RestParameter(
+        description = "The audio start times as comma seperated list",
+        isRequired = true, name = "audioStartTimes",
+        type = Type.STRING),
+        },
+      responses = {
+      @RestResponse(
+        description = "Results in an xml document containing the merged audio track",
+        responseCode = HttpServletResponse.SC_OK),
+      @RestResponse(
+        description = "If required parameters aren't set or if sourceTracks aren't from the type "
+        + "Track or not at least two tracks are present",
+        responseCode = HttpServletResponse.SC_BAD_REQUEST) },
+        returnDescription = "")
   public Response mergeAudioTracks(@FormParam("audioTracks") String audioTracksXml,
       @FormParam("profileId") String profileId, @FormParam("audioStartTimes") String audioStartTimesStringified)
-      throws Exception {
+          throws Exception {
     // Ensure that the POST parameters are present
     if (StringUtils.isBlank(audioTracksXml) || StringUtils.isBlank(profileId) || StringUtils.isBlank(
         audioStartTimesStringified)) {
@@ -830,7 +851,8 @@ public class ComposerRestService extends AbstractJobProducerEndpoint {
         return Response.status(Response.Status.BAD_REQUEST).entity("Source tracks must be of type 'track'").build();
       }
       if (((Track) elem).hasVideo()) {
-        return Response.status(Response.Status.BAD_REQUEST).entity("Just audio-only tracks are allowed. There was at least one video in the track list").build();
+        return Response.status(Response.Status.BAD_REQUEST)
+        .entity("Just audio-only tracks are allowed. There was at least one video in the track list").build();
       }
     }
 
@@ -838,7 +860,8 @@ public class ComposerRestService extends AbstractJobProducerEndpoint {
           .mapToLong(Long::parseLong).boxed().collect(Collectors.toList());
 
     if (audioStartTimes.size() != tracks.size()) {
-      return Response.status(Response.Status.BAD_REQUEST).entity("The number of tracks must match the number of start times.").build();
+      return Response.status(Response.Status.BAD_REQUEST)
+      .entity("The number of tracks must match the number of start times.").build();
     }
 
     try {

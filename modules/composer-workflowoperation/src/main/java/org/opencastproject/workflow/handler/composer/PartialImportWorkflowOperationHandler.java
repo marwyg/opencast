@@ -213,8 +213,8 @@ public class PartialImportWorkflowOperationHandler extends AbstractWorkflowOpera
     final MediaPackageElementFlavor smilFlavor = MediaPackageElementFlavor.parseFlavor(getConfig(operation,
         SOURCE_SMIL_FLAVOR));
     final String concatEncodingProfile = getConfig(operation, CONCAT_ENCODING_PROFILE);
-    final Opt<String> audioMergeEncodingProfile = getOptConfig(operation, AUDIO_MERGE_ENCODING_PROFILE);
-    final Opt<String> concatOutputFramerate = getOptConfig(operation, CONCAT_OUTPUT_FRAMERATE);
+    final String audioMergeEncodingProfile = getConfig(operation, AUDIO_MERGE_ENCODING_PROFILE);
+    final Optional<String> concatOutputFramerate = getOptConfig(operation, CONCAT_OUTPUT_FRAMERATE);
     final String trimEncodingProfile = getConfig(operation, TRIM_ENCODING_PROFILE);
     final MediaPackageElementFlavor targetPresenterFlavor = parseTargetFlavor(
             getConfig(operation, TARGET_PRESENTER_FLAVOR), "presenter");
@@ -246,17 +246,10 @@ public class PartialImportWorkflowOperationHandler extends AbstractWorkflowOpera
       throw new WorkflowOperationException("Concat encoding profile '" + concatEncodingProfile + "' was not found");
     }
 
-    final String audioMergeProfileId;
-    if (audioMergeEncodingProfile.isNone()) {
-      logger.info("Workflow operation config '" + AUDIO_MERGE_ENCODING_PROFILE + "' it not set. Using default.");
-      audioMergeProfileId = "audiomerge.work";
-    } else {
-      EncodingProfile audioMergeProfile = composerService.getProfile(audioMergeEncodingProfile.get());
-      if (audioMergeProfile == null) {
-        throw new WorkflowOperationException("Audio Merge encoding profile '" + audioMergeEncodingProfile + "' was not found");
-      } else {
-        audioMergeProfileId = audioMergeProfile.getIdentifier();
-      }
+    final EncodingProfile audioMergeProfile = composerService.getProfile(audioMergeEncodingProfile);
+    if (audioMergeProfile == null)  {
+      throw new WorkflowOperationException("Audio Merge encoding profile '" + audioMergeEncodingProfile
+      + "' was not found");
     }
 
     float outputFramerate = -1.0f;
@@ -318,7 +311,8 @@ public class PartialImportWorkflowOperationHandler extends AbstractWorkflowOpera
       // first process audio
       // ----------------------------------------------------------------------------------------------
 
-      final long lastAudioPosition = processAudioTracks(0, audioTracks, audioStartTimes, item.getChildNodes(), originalTracks, sourceType, elementsToClean, operationId);
+      final long lastAudioPosition = processAudioTracks(0, audioTracks, audioStartTimes, item.getChildNodes(),
+          originalTracks, sourceType, elementsToClean, operationId);
       if (audioTracks.size() > 0 && lastAudioPosition < trackDurationInMs) {
         final double extendingTime = (trackDurationInMs - lastAudioPosition) / 1000d;
         if (extendingTime > 0) {
@@ -328,51 +322,12 @@ public class PartialImportWorkflowOperationHandler extends AbstractWorkflowOpera
         }
       }
 
-        if (position < trackDurationInMs) {
-          final double extendingTime = (trackDurationInMs - position) / 1000d;
-          if (extendingTime > 0) {
-            if (!lastTrack.hasVideo()) {
-              logger.info("Extending {} audio track end by {} seconds with silent audio", sourceType.get(),
-                      extendingTime);
-              tracks.add(getSilentAudio(extendingTime, elementsToClean, operationId));
-            } else {
-              logger.info("Extending {} track end with last image frame by {} seconds",
-                  sourceType.get(), extendingTime);
-              Attachment tempLastImageFrame = extractLastImageFrame(lastTrack, elementsToClean);
-              tracks.add(createVideoFromImage(tempLastImageFrame, extendingTime, elementsToClean));
-            }
-          }
-        }
-
-        if (tracks.size() < 2) {
-          logger.debug("There were less than 2 tracks, copying track...");
-          if (sourceType.get().startsWith(PRESENTER_KEY)) {
-            createCopyOfTrack(mediaPackage, tracks.get(0), targetPresenterFlavor);
-          } else if (sourceType.get().startsWith(PRESENTATION_KEY)) {
-            createCopyOfTrack(mediaPackage, tracks.get(0), targetPresentationFlavor);
-          } else {
-            logger.warn("Can't handle unkown source type '{}' for unprocessed track", sourceType.get());
-          }
-          continue;
-        }
-
-        for (final Track t : tracks) {
-          if (!t.hasVideo() && !t.hasAudio()) {
-            logger.error("No audio or video stream available in the track with flavor {}! {}", t.getFlavor(), t);
-            throw new WorkflowOperationException("No audio or video stream available in the track " + t.toString());
-          }
-        }
-
-        if (sourceType.get().startsWith(PRESENTER_KEY)) {
-          logger.info("Concatenating {} track", PRESENTER_KEY);
-          jobs.put(sourceType.get(), startConcatJob(concatProfile, tracks, outputFramerate, forceDivisible));
-        } else if (sourceType.get().startsWith(PRESENTATION_KEY)) {
-          logger.info("Concatenating {} track", PRESENTATION_KEY);
-          jobs.put(sourceType.get(), startConcatJob(concatProfile, tracks, outputFramerate, forceDivisible));
+      // Handle audio tracks
       if (audioTracks.size() > 1) {
         if (sourceType.get().startsWith(PRESENTER_KEY) || sourceType.get().startsWith(PRESENTATION_KEY)) {
           logger.info("Merging {} audio tracks", sourceType.get());
-          Job audioMergeJob = composerService.mergeAudioTracks(audioMergeProfileId, audioStartTimes, audioTracks);
+          Job audioMergeJob = composerService.mergeAudioTracks(audioMergeProfile.getIdentifier(),
+              audioStartTimes, audioTracks);
           jobs.put(sourceType.get(), audioMergeJob);
         } else {
           logger.warn("Can't handle unknown source type '{}'!", sourceType.get());
@@ -393,7 +348,8 @@ public class PartialImportWorkflowOperationHandler extends AbstractWorkflowOpera
 
       sourceType.set("");
 
-      final long lastVideoPosition = processVideoTracks(0, videoTracks, item.getChildNodes(), originalTracks, sourceType, elementsToClean, operationId);
+      final long lastVideoPosition = processVideoTracks(0, videoTracks, item.getChildNodes(), originalTracks,
+          sourceType, elementsToClean, operationId);
 
       if (videoTracks.isEmpty()) {
         logger.debug("The video tracks list was empty.");
@@ -444,7 +400,8 @@ public class PartialImportWorkflowOperationHandler extends AbstractWorkflowOpera
     // Wait for the jobs to return
     if (jobs.size() > 0) {
       if (!JobUtil.waitForJobs(serviceRegistry, jobs.values()).isSuccess()) {
-        throw new WorkflowOperationException("One of the video-concat or audio-merge jobs did not complete successfully");
+        throw new WorkflowOperationException(
+          "One of the video-concat or audio-merge jobs did not complete successfully");
       }
     } else {
       logger.info("No Audio merge or video concat were neccessary. Job list was empty");
@@ -946,7 +903,8 @@ public class PartialImportWorkflowOperationHandler extends AbstractWorkflowOpera
     List<Track> encodedTracks = new ArrayList<>();
     Map<String, Job> preencodeJobMap = new HashMap<>();
 
-    // we need this maps, so we can copy some track information from the old track to the new one, when the jobs are finished
+    // we need this maps, so we can copy some track information from the old track to the new one,
+    // when the jobs are finished
     Map<String, Track> trackMap = new HashMap<>();
     Map<String, Job> jobMap = new HashMap<>();
 
@@ -1056,7 +1014,7 @@ public class PartialImportWorkflowOperationHandler extends AbstractWorkflowOpera
 
   private long processAudioTracks(long position, List<Track> audioTracks, List<Long> audioStartTimes, NodeList children,
       List<Track> originalTracks, VCell<String> type, List<MediaPackageElement> elementsToClean, Long operationId)
-      throws EncoderException, MediaPackageException, WorkflowOperationException, NotFoundException, IOException {
+          throws EncoderException, MediaPackageException, WorkflowOperationException, NotFoundException, IOException {
 
     String mediaType = NODE_TYPE_AUDIO;
     for (int j = 0; j < children.getLength(); j++) {
@@ -1088,7 +1046,7 @@ public class PartialImportWorkflowOperationHandler extends AbstractWorkflowOpera
 
   private long processVideoTracks(long position, List<Track> videoTracks, NodeList children, List<Track> originalTracks,
       VCell<String> type, List<MediaPackageElement> elementsToClean, Long operationId)
-      throws EncoderException, MediaPackageException, WorkflowOperationException, NotFoundException, IOException {
+          throws EncoderException, MediaPackageException, WorkflowOperationException, NotFoundException, IOException {
 
     String mediaType = NODE_TYPE_VIDEO;
     for (int j = 0; j < children.getLength(); j++) {
