@@ -33,6 +33,9 @@ import org.apache.http.HttpStatus;
 import org.apache.http.StatusLine;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.joda.time.DateTimeConstants;
+import org.osgi.service.component.ComponentContext;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Modified;
 import org.osgi.service.component.annotations.Reference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,6 +46,7 @@ import java.net.URI;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Dictionary;
 import java.util.List;
 import java.util.Optional;
 
@@ -50,6 +54,13 @@ import java.util.Optional;
  * Base class serving as a convenience implementation for remote services.
  */
 public class RemoteBase {
+
+  /** Configuration key for the service registration timeout in seconds */
+  public static final String CFG_KEY_SERVICE_REGISTRATION_TIMEOUT
+          = "org.opencastproject.serviceregistry.remote.registration.timeout";
+
+  /** Value to disable timeout (wait indefinitely) */
+  public static final long TIMEOUT_DISABLED = -1L;
 
   private static final int TIMEOUT = 10000;
 
@@ -64,6 +75,9 @@ public class RemoteBase {
 
   /** The http client */
   protected ServiceRegistry remoteServiceManager = null;
+
+  /** Timeout in seconds to wait for service registration when no services are available (-1 = indefinitely) */
+  protected long serviceRegistrationTimeoutSeconds = TIMEOUT_DISABLED;
 
   /** A list of known http statuses */
   private static final List<Integer> knownHttpStatuses = Arrays.asList(HttpStatus.SC_SERVICE_UNAVAILABLE);
@@ -99,6 +113,42 @@ public class RemoteBase {
   @Reference
   public void setRemoteServiceManager(ServiceRegistry remoteServiceManager) {
     this.remoteServiceManager = remoteServiceManager;
+  }
+
+  @Activate
+  @Modified
+  protected void activate(ComponentContext cc) {
+    Dictionary<String, Object> properties = cc.getProperties();
+    if (properties == null) {
+      logger.info("No configuration provided, waiting indefinitely for service registration of type '{}'", serviceType);
+      serviceRegistrationTimeoutSeconds = TIMEOUT_DISABLED;
+      return;
+    }
+
+    String timeoutString = StringUtils.trimToNull((String) properties.get(CFG_KEY_SERVICE_REGISTRATION_TIMEOUT));
+    if (StringUtils.isNotBlank(timeoutString)) {
+      try {
+        long timeout = Long.parseLong(timeoutString);
+        if (timeout < TIMEOUT_DISABLED) {
+          logger.warn("Service registration timeout '{}' must be >= -1, waiting indefinitely for service type '{}'",
+                  timeoutString, serviceType);
+          serviceRegistrationTimeoutSeconds = TIMEOUT_DISABLED;
+        } else if (timeout == TIMEOUT_DISABLED) {
+          serviceRegistrationTimeoutSeconds = TIMEOUT_DISABLED;
+          logger.info("Service registration timeout disabled, waiting indefinitely for service type '{}'", serviceType);
+        } else {
+          serviceRegistrationTimeoutSeconds = timeout;
+          logger.info("Set service registration timeout to {} s for service type '{}'", timeout, serviceType);
+        }
+      } catch (NumberFormatException e) {
+        logger.warn("Service registration timeout '{}' is not a valid number, waiting indefinitely for service '{}'",
+                timeoutString, serviceType);
+        serviceRegistrationTimeoutSeconds = TIMEOUT_DISABLED;
+      }
+    } else {
+      logger.debug("No timeout configured, waiting indefinitely for service registration of type '{}'", serviceType);
+      serviceRegistrationTimeoutSeconds = TIMEOUT_DISABLED;
+    }
   }
 
   protected <A> Optional<A> runRequest(HttpRequestBase req, java.util.function.Function<HttpResponse, Optional<A>> f) {
@@ -152,8 +202,10 @@ public class RemoteBase {
 
     final long maxWaitTimeMillis = System.currentTimeMillis() + DateTimeConstants.MILLIS_PER_DAY;
     boolean warnedUnavailability = false;
+    final long startTime = System.currentTimeMillis();
+    boolean servicesNeverRegistered = true;
 
-    // Try forever
+    // Try until timeout or success
     while (true) {
 
       List<ServiceRegistration> remoteServices = null;
@@ -167,16 +219,36 @@ public class RemoteBase {
           remoteServices = remoteServiceManager.getServiceRegistrationsByLoad(serviceType);
           if (remoteServices == null || remoteServices.size() == 0) {
             if (!warned) {
-              logger.warn("No services of type '{}' found, waiting...", serviceType);
+              if (serviceRegistrationTimeoutSeconds >= 0) {
+                logger.warn("No services of type '{}' found, waiting up to {} s for registration...", serviceType,
+                        serviceRegistrationTimeoutSeconds);
+              } else {
+                logger.warn("No services of type '{}' found, waiting indefinitely for registration...", serviceType);
+              }
               warned = true;
             }
-            logger.debug("Still no services of type '{}' found, waiting...", serviceType);
+            logger.debug("Still no services of type '{}' found, waiting... (elapsed: {} ms)", serviceType,
+                    System.currentTimeMillis() - startTime);
             try {
               Thread.sleep(TIMEOUT);
             } catch (InterruptedException e) {
               logger.warn("Interrupted while waiting for remote service of type '{}'", serviceType);
               return null;
             }
+            // Check timeout only when services have never been registered
+            // If services were registered but are busy, wait indefinitely
+            // Timeout is only applied if serviceRegistrationTimeoutSeconds >= 0 (negative = disabled/indefinite)
+            if (serviceRegistrationTimeoutSeconds >= 0) {
+              long elapsedSeconds = (System.currentTimeMillis() - startTime) / 1000;
+              if (servicesNeverRegistered && elapsedSeconds > serviceRegistrationTimeoutSeconds) {
+                logger.warn("Timeout of {} s waiting for service registration of type '{}', aborting",
+                        serviceRegistrationTimeoutSeconds, serviceType);
+                return null;
+              }
+            }
+          } else {
+            // Services were found at least once
+            servicesNeverRegistered = false;
           }
         } catch (ServiceRegistryException e) {
           logger.warn("Unable to obtain a list of remote services", e);

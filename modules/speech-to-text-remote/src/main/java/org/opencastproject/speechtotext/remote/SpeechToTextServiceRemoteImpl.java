@@ -34,7 +34,10 @@ import org.apache.http.NameValuePair;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.message.BasicNameValuePair;
+import org.osgi.service.component.ComponentContext;
+import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Modified;
 import org.osgi.service.component.annotations.Reference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,6 +59,14 @@ import java.util.List;
 public class SpeechToTextServiceRemoteImpl extends RemoteBase implements SpeechToTextService {
 
   private static final Logger logger = LoggerFactory.getLogger(SpeechToTextServiceRemoteImpl.class);
+
+  @Activate
+  @Modified
+  @Override
+  public void activate(ComponentContext cc) {
+    logger.info("Activating/Updating speecht-to-text remote service");
+    super.activate(cc);
+  }
 
   /** Creates a new speech-to-text service instance. */
   public SpeechToTextServiceRemoteImpl() {
