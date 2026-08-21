@@ -1,0 +1,62 @@
+name: Test » Corrupted Event Deletion
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test-corrupted-deletion:
+    name: Corrupted AssetManager Deletion
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: 'recursive'
+
+      - name: cache local maven repository
+        uses: actions/cache@v6
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
+      - name: setup java
+        uses: actions/setup-java@v5.6.0
+        with:
+          distribution: 'temurin'
+          java-version: 21
+
+      - name: install dependencies
+        run: |
+          sudo apt update -q
+          sudo apt install -y -q \
+            bzip2 \
+            ffmpeg \
+            gzip \
+            jq \
+            procps \
+            s3cmd \
+            tar \
+            tesseract-ocr \
+            tesseract-ocr-deu \
+            unzip
+
+      - name: make scripts executable
+        run: |
+          chmod +x .github/integration-tests/lib/*.sh
+          chmod +x .github/integration-tests/*.sh
+
+      - name: run corrupted assetmanager deletion test
+        run: .github/integration-tests/test-corrupted-assetmanager-deletion.sh
+
+      - name: upload opencast logs
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: opencast-logs-corrupted-deletion
+          path: |
+            build/opencast-dist-allinone*/data/log/
+          if-no-files-found: ignore
+          retention-days: 7
