@@ -257,6 +257,9 @@ public class ComposerServiceImpl extends AbstractJobProducer implements Composer
   /** Path to the FFmpeg binary */
   private String ffmpegBinary = FFMPEG_BINARY_DEFAULT;
 
+  /** Identifier of the audio-merge encoding profile, which has a built-in default **/
+  private static final String DEFAULT_AUDIO_MERGE_PROFILE = "audiomerge.work";
+
   /** Default audio-merge encoding profile if no one is set **/
   private EncodingProfile defaultAudioMergeEncodingProfile;
 
@@ -280,7 +283,7 @@ public class ComposerServiceImpl extends AbstractJobProducer implements Composer
     logger.debug("ffmpeg binary: {}", ffmpegBinary);
 
     // creating default encoding profile in case none is set
-    EncodingProfileImpl profile = new EncodingProfileImpl("audiomerge.work", "audiomerge", null);
+    EncodingProfileImpl profile = new EncodingProfileImpl(DEFAULT_AUDIO_MERGE_PROFILE, "audiomerge", null);
     profile.setOutputType(EncodingProfile.MediaType.Audio);
     profile.setSuffix("-merged.mkv");
     profile.setApplicableType(EncodingProfile.MediaType.AudioVisual);
@@ -1007,7 +1010,12 @@ public class ComposerServiceImpl extends AbstractJobProducer implements Composer
       for (int i = 0; i < audioTracks.size(); i++) {
         arguments.add(i + 2, MediaPackageElementParser.getAsXml(audioTracks.get(i)));
       }
-      return serviceRegistry.createJob(JOB_TYPE, Operation.MergeAudioTracks.toString(), arguments);
+      EncodingProfile profile = getAudioMergeProfile(profileId);
+      if (profile == null) {
+        throw new EncoderException(format("Profile %s is unknown", profileId));
+      }
+      return serviceRegistry.createJob(JOB_TYPE, Operation.MergeAudioTracks.toString(), arguments,
+          profile.getJobLoad());
     } catch (ServiceRegistryException e) {
       throw new EncoderException("Unable to create 'Merge Audio Tracks' job", e);
     }
@@ -1037,17 +1045,34 @@ public class ComposerServiceImpl extends AbstractJobProducer implements Composer
     }
   }
 
+  /**
+   * Returns the audio merge encoding profile. If the default audio merge profile is not configured, the built-in
+   * default profile is used instead.
+   *
+   * @param profileId
+   *          the identifier of the encoding profile
+   * @return the encoding profile or null if it does not exist
+   */
+  private EncodingProfile getAudioMergeProfile(String profileId) {
+    EncodingProfile profile = profileScanner.getProfile(profileId);
+    if (profile == null && DEFAULT_AUDIO_MERGE_PROFILE.equals(profileId)) {
+      logger.debug("Profile {} is unknown. Using built-in default", profileId);
+      return defaultAudioMergeEncodingProfile;
+    }
+    return profile;
+  }
+
   private Optional<Track> mergeAudioTracks(Job job, String profileId, List<Long> audioStartTimes,
       List<Track> audioTracks)
           throws EncoderException {
     if (audioTracks.size() < 2) {
       throw new EncoderException(String.format(
-        "The track parameter must at least have two tracks present. Provided tracks: {}", audioTracks.size()));
+        "The track parameter must at least have two tracks present. Provided tracks: %d", audioTracks.size()));
     }
 
     if (audioTracks.size() != audioStartTimes.size()) {
       throw new EncoderException(String.format(
-        "Number of audio tracks ({}) and 'audio start times' ({}) are not equal.",
+        "Number of audio tracks (%d) and 'audio start times' (%d) are not equal.",
          audioTracks.size(), audioStartTimes.size()));
     }
 
@@ -1055,23 +1080,17 @@ public class ComposerServiceImpl extends AbstractJobProducer implements Composer
     for (Track t : audioTracks) {
       if (t.hasVideo()) {
         throw new EncoderException(String.format(
-          "There was at least one video in the audio track list: '{}'", t.getURI()));
+          "There was at least one video in the audio track list: '%s'", t.getURI()));
       }
       audioFiles.add(loadTrackIntoWorkspace(job, "audio_merge", t, false));
     }
 
-    // try to get encoding profile from file, use default as fallback
-    EncodingProfile encodingProfile = profileScanner.getProfile(profileId);
+    EncodingProfile encodingProfile = getAudioMergeProfile(profileId);
     if (encodingProfile == null) {
       final String msg = format("Profile %s is unknown.", profileId);
-      if ("audiomerge.work".equals(profileId)) {
-        logger.info(msg + " Using default");
-        encodingProfile = defaultAudioMergeEncodingProfile;
-      } else {
-        logger.error(msg);
-        incident().recordFailure(job, PROFILE_NOT_FOUND, Collections.map(tuple("profile", profileId)));
-        throw new EncoderException(msg);
-      }
+      logger.error(msg);
+      incident().recordFailure(job, PROFILE_NOT_FOUND, Map.of("profile", profileId));
+      throw new EncoderException(msg);
     }
 
     final EncoderEngine encoderEngine = getEncoderEngine();
@@ -1949,7 +1968,7 @@ public class ComposerServiceImpl extends AbstractJobProducer implements Composer
     // "[0:a]adelay=1500:all=1[a0]; \
     // [1:a]adelay=2500:all=1[a1]; \
     // [2:a]adelay=4000:all=1[a2]; \
-    // [a0][a1][a2]amix=inputs=3:duration=longest[aout]" \
+    // [a0][a1][a2]amix=inputs=3:duration=longest:normalize=0[aout]" \
     // -map "[aout]" \
     // -c:a flac \   <- thats in the encoding profile
     // output.flac   <- thats managed by the encoding engine
@@ -1970,9 +1989,10 @@ public class ComposerServiceImpl extends AbstractJobProducer implements Composer
           .append(":all=1[a").append(i).append("];");
       audioMixParts.append("[a").append(i).append("]");
     }
-    // example: [a0][a1][a2]amix=inputs=3:duration=longest[aout]"
+    // example: [a0][a1][a2]amix=inputs=3:duration=longest:normalize=0[aout]"
+    // normalize=0: amix would otherwise divide every input's volume by the number of inputs
     command.append(audioMixParts).append("amix=inputs=").append(audioStartTimes.size())
-        .append(":duration=longest[aout]");
+        .append(":duration=longest:normalize=0[aout]");
     command.append("\" "); // closing double quote
 
     command.append("-map \"[aout]\" ");

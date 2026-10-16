@@ -108,6 +108,8 @@ public class PartialImportWorkflowOperationHandler extends AbstractWorkflowOpera
 
   private static final String CONCAT_ENCODING_PROFILE = "concat-encoding-profile";
   private static final String AUDIO_MERGE_ENCODING_PROFILE = "audio-merge-encoding-profile";
+  /** The composer service has a built-in fallback for this profile, so it does not need to be configured */
+  private static final String DEFAULT_AUDIO_MERGE_ENCODING_PROFILE = "audiomerge.work";
 
   private static final String CONCAT_OUTPUT_FRAMERATE = "concat-output-framerate";
   private static final String TRIM_ENCODING_PROFILE = "trim-encoding-profile";
@@ -213,7 +215,8 @@ public class PartialImportWorkflowOperationHandler extends AbstractWorkflowOpera
     final MediaPackageElementFlavor smilFlavor = MediaPackageElementFlavor.parseFlavor(getConfig(operation,
         SOURCE_SMIL_FLAVOR));
     final String concatEncodingProfile = getConfig(operation, CONCAT_ENCODING_PROFILE);
-    final String audioMergeEncodingProfile = getConfig(operation, AUDIO_MERGE_ENCODING_PROFILE);
+    final String audioMergeEncodingProfile = getOptConfig(operation, AUDIO_MERGE_ENCODING_PROFILE)
+        .orElse(DEFAULT_AUDIO_MERGE_ENCODING_PROFILE);
     final Optional<String> concatOutputFramerate = getOptConfig(operation, CONCAT_OUTPUT_FRAMERATE);
     final String trimEncodingProfile = getConfig(operation, TRIM_ENCODING_PROFILE);
     final MediaPackageElementFlavor targetPresenterFlavor = parseTargetFlavor(
@@ -246,8 +249,8 @@ public class PartialImportWorkflowOperationHandler extends AbstractWorkflowOpera
       throw new WorkflowOperationException("Concat encoding profile '" + concatEncodingProfile + "' was not found");
     }
 
-    final EncodingProfile audioMergeProfile = composerService.getProfile(audioMergeEncodingProfile);
-    if (audioMergeProfile == null)  {
+    if (!DEFAULT_AUDIO_MERGE_ENCODING_PROFILE.equals(audioMergeEncodingProfile)
+        && composerService.getProfile(audioMergeEncodingProfile) == null) {
       throw new WorkflowOperationException("Audio Merge encoding profile '" + audioMergeEncodingProfile
       + "' was not found");
     }
@@ -322,12 +325,21 @@ public class PartialImportWorkflowOperationHandler extends AbstractWorkflowOpera
         }
       }
 
+      // A single audio track would just be copied below, losing its start time. If it does not start at the
+      // beginning, prepend silence so that the merge places it correctly.
+      if (audioTracks.size() == 1 && audioStartTimes.get(0) > 0) {
+        final double fillTime = audioStartTimes.get(0) / 1000d;
+        logger.debug("Extending {} audio track start by {} seconds with silent audio", sourceType.get(), fillTime);
+        audioTracks.add(0, getSilentAudio(fillTime, elementsToClean, operationId));
+        audioStartTimes.add(0, 0L);
+      }
+
       // Handle audio tracks
       if (audioTracks.size() > 1) {
         if (sourceType.get().startsWith(PRESENTER_KEY) || sourceType.get().startsWith(PRESENTATION_KEY)) {
           logger.info("Merging {} audio tracks", sourceType.get());
-          Job audioMergeJob = composerService.mergeAudioTracks(audioMergeProfile.getIdentifier(),
-              audioStartTimes, audioTracks);
+          Job audioMergeJob = composerService.mergeAudioTracks(audioMergeEncodingProfile, audioStartTimes,
+              audioTracks);
           jobs.put(sourceType.get(), audioMergeJob);
         } else {
           logger.warn("Can't handle unknown source type '{}'!", sourceType.get());
