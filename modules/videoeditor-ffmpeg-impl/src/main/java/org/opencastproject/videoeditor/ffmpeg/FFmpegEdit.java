@@ -242,6 +242,10 @@ public class FFmpegEdit {
       outmap = "o";                 // if more than one clip
     }
     for (String o : inputfiles) {
+      // Do not reinitialize the filters if frame properties (e.g. the color properties) change mid-stream,
+      // since this resets the state of trim and setpts, resulting in wrong timestamps and dropped frames
+      command.add("-reinit_filter");
+      command.add("0");
       command.add("-i");   // Add inputfile in the order of entry
       command.add(o);
     }
